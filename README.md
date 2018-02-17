@@ -157,3 +157,9 @@ origin/master <2 >2 ?1 ␡1 +1 𝚫1 ∴1 #4
 $ git checkout <some hash> && __git_status
 detached/20528e7ad4
 ```
+
+#### tagged commit
+```txt
+$ git tag v0.0.1 && __git_status
+tag/v0.0.1
+```
