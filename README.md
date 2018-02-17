@@ -2,7 +2,7 @@
 
 This is a simple, clean `git` status line for your shell prompt. The `git-status.sh` script defines a function called, creatively, `__git_status()` that returns a string indicating the current state of your local repository. The function returns a string describing:
 
-* origin/local/detached/tag indicator
+* origin/local/detached/tag repository position indicator
 * commit name / hash
 * number of commits behind origin
 * number of commits ahead of origin
