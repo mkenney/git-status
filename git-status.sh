@@ -1,5 +1,43 @@
 #!/usr/bin/env bash
 
+# This is a simple, clean `git` status line for your shell prompt. The
+# `git-status.sh` script defines a function called, creatively,
+# `__git_status()` that returns a string indicating the current state of
+# your local repository. The function returns a string describing:
+#
+# * `origin`/`local`/`tag`/`detached` origin indicator
+# * branch name/tag name/commit hash position indicator
+# * number of commits behind origin: `>n`
+# * number of commits ahead of origin: `<n`
+# * number of untracked files: `?n`
+# * number of deleted files: `Dn`
+# * number of added files: `+n`
+# * number of modified files: `𝚫n`
+# * number of renamed files: `↪n`
+# * number of files with unstaged changes: `∴n`
+# * total number of files: `#n`
+#
+# MIT License
+# Copyright (c) 2018 Michael Kenney
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 __git_status() {
     set -o pipefail
     local added=0
