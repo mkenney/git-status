@@ -47,7 +47,6 @@ __git_status() {
             ref_name=$(basename $(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null); exit_code=$?
             ref_source="local"
             if [ "0" != "$exit_code" ]; then
-
                 # Assume detached state
                 ref_name=$hash
                 ref_source="detached"
@@ -64,9 +63,12 @@ __git_status() {
                 ref_name=$(basename $ref)
                 ref_source="local"
             fi
-        else
+        elif grep -q '\->' <<< $(git show -s --pretty=%d HEAD); then
             ref_name=$(basename $tree_position)
             ref_source=$(dirname $tree_position)
+        else
+            ref_name="$hash"
+            ref_source="detached"
         fi
     fi
 
