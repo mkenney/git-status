@@ -112,7 +112,7 @@ __git_status() {
             if [ "D" = "$flag1" ] || [ "D" = "$flag2" ]; then
                 deleted=$((deleted + 1))
                 # × ␥ ␡
-                deleted_str="␡$deleted "
+                deleted_str="D$deleted "
                 output=1
             fi
 
