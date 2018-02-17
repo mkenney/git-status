@@ -38,7 +38,6 @@ __git_status() {
     ref_name=$(git rev-parse --abbrev-ref HEAD 2> /dev/null); exit_code=$?
     ref_source="origin"
     if [ "0" != "$exit_code" ]; then
-
         # See if on a tag
         ref_name="$(git describe --tags 2> /dev/null)"; exit_code=$?
         ref_source="tag"
@@ -57,8 +56,14 @@ __git_status() {
     else
         tree_position=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD 2> /dev/null) | head -1) 2> /dev/null
         if [ "" = "$tree_position" ]; then
-            ref_name="$hash"
-            ref_source="detached"
+            ref=$(git symbolic-ref -q HEAD 2> /dev/null)
+            if [ "" = "$ref" ]; then
+                ref_name="$hash"
+                ref_source="detached"
+            else
+                ref_name=$(basename $ref)
+                ref_source="local"
+            fi
         else
             ref_name=$(basename $tree_position)
             ref_source=$(dirname $tree_position)
@@ -81,7 +86,8 @@ __git_status() {
 
     # Files with unstaged changes
     if [ "" != "$(git diff --name-only)" ]; then
-        unstaged_str="⸮$(git diff --name-only | wc | awk '{print $1}') "
+        # ♐ ± ~ ∵ ∴
+        unstaged_str="∴$(git diff --name-only | wc | awk '{print $1}') "
         output=1
     fi
 

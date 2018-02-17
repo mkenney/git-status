@@ -15,10 +15,39 @@ This is a simple git status line for your shell prompt. Defines a function calle
 * total number of files
 
 ## examples
-```sh
-origin/master
+
+### New repository
+```txt
+$ git init && __git_status
+local/master
 ```
 
+### Untracked files
+```txt
+$ touch foo && __git_status
+local/master ?1 #1
+```
+```txt
+$ touch bar && __git_status
+local/master ?2 #2
+```
 
+### Added files
+```txt
+$ git add foo && __git_status
+local/master ?1 +1 #2
+```
+```txt
+$ git add bar && __git_status
+local/master +2 #2
+```
 
-`[origin]/[commit] [commits behind origin] [commits ahead of origin] [untracked files]
+### Modified files
+```txt
+$ echo "baz" > foo && __git_status
+local/master +2 𝚫1 ⸮1 #3
+```
+```txt
+$ echo "baz" > bar && __git_status
+local/master +2 #2
+```
