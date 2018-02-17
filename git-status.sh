@@ -96,6 +96,7 @@ __git_status() {
         flag1=${line:0:1}
         flag2=${line:1:1}
         if [ "" != "$line" ]; then
+            total=$((total + 1))
 
             # Added files
             if [ "A" = "$flag1" ] || [ "A" = "$flag2" ]; then
@@ -103,7 +104,6 @@ __git_status() {
                 # +
                 added_str="+$added "
                 output=1
-                total=$((total + 1))
             fi
 
             # Deleted files
@@ -112,7 +112,6 @@ __git_status() {
                 # × ␥ ␡
                 deleted_str="␡$deleted "
                 output=1
-                total=$((total + 1))
             fi
 
             # Modified files
@@ -121,7 +120,6 @@ __git_status() {
                 # ≠ ≢ 𝚫
                 modified_str="𝚫$modified "
                 output=1
-                total=$((total + 1))
             fi
 
             # Renamed files
@@ -130,7 +128,6 @@ __git_status() {
                 # ⤿  ↪
                 renamed_str="↪$renamed "
                 output=1
-                total=$((total + 1))
             fi
 
             # Untracked files
@@ -139,7 +136,6 @@ __git_status() {
                 # ∑ ?
                 untracked_str="?$untracked "
                 output=1
-                total=$((total + 1))
             fi
         fi
     done << EOF
