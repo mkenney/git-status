@@ -133,14 +133,21 @@ $ ... && __git_status
 origin/master >2
 ```
 
-### origin 2 commits behind local branch
+### local branch 2 commits ahead of origin
 ```txt
 $ ... && __git_status
 origin/master <2
 ```
 
-### origin contains 2 commits local branch doesn't have, and local branch contains 2 commits origin doens't have...
+### local branch contains 2 commits origin doens't have and origin contains 2 commits local branch doesn't have...
 ```txt
 $ ... && __git_status
 origin/master <2 >2
+```
+
+### All together
+#### local ahead 2 commits, origin ahead 2 commits, 1 untracked file, 1 deleted file, 1 new file, 1 modified file, 1 modified file with unstaged changes, 4 total files
+```txt
+$ ... && __git_status
+origin/master <2 >2 ?1 ␡1 +1 𝚫1 ∴1 #4
 ```
