@@ -16,6 +16,18 @@ This is a simple, clean `git` status line for your shell prompt. The `git-status
 
 ## examples
 
+#### detached head
+```txt
+$ git checkout <some hash> && __git_status
+detached/20528e7ad4
+```
+
+#### tagged commit
+```txt
+$ git tag v0.0.1 && __git_status
+tag/v0.0.1
+```
+
 #### New empty repository
 ```txt
 $ git init && __git_status
@@ -150,16 +162,4 @@ origin/master <2 >2
 ```txt
 $ ... && __git_status
 origin/master <2 >2 ?1 D1 +1 𝚫2 ∴1 #4
-```
-
-#### detached head
-```txt
-$ git checkout <some hash> && __git_status
-detached/20528e7ad4
-```
-
-#### tagged commit
-```txt
-$ git tag v0.0.1 && __git_status
-tag/v0.0.1
 ```
