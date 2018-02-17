@@ -151,3 +151,9 @@ origin/master <2 >2
 $ ... && __git_status
 origin/master <2 >2 ?1 ␡1 +1 𝚫1 ∴1 #4
 ```
+
+#### detached head
+```txt
+$ git checkout <some hash> && __git_status
+detached/20528e7ad4
+```
