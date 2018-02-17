@@ -126,3 +126,21 @@ local/master
 $ git remote add origin https://github.com/user/repo.git && git push -u origin master && __git_status
 origin/master
 ```
+
+### origin 2 commits ahead of local branch
+```txt
+$ ... && __git_status
+origin/master >2
+```
+
+### origin 2 commits behind local branch
+```txt
+$ ... && __git_status
+origin/master <2
+```
+
+### origin contains 2 commits local branch doesn't have, and local branch contains 2 commits origin doens't have...
+```txt
+$ ... && __git_status
+origin/master <2 >2
+```
