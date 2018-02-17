@@ -78,3 +78,51 @@ local/master
 $ echo "baz2" >> bar && __git_status
 local/master 𝚫1 ∴1 #1
 ```
+
+# 2 modified files, 2 modified files with unstaged changes, 2 total files
+```txt
+$ echo "baz" >> foo && __git_status
+local/master 𝚫2 ∴2 #2
+```
+
+# 2 modified files, 1 modified file with unstaged changes, 2 total files
+```txt
+$ git add foo && __git_status
+local/master 𝚫2 ∴1 #2
+```
+
+# 2 modified files, 1 modified file with unstaged changes, 2 total files
+```txt
+$ git add foo && __git_status
+local/master 𝚫2 ∴1 #2
+```
+
+# 1 untracked file, 2 modified files, 1 modified file with unstaged changes, 3 total files
+```txt
+$ touch baz && __git_status
+local/master ?1 𝚫2 ∴1 #3
+```
+
+# 2 untracked files, 2 modified files, 1 modified file with unstaged changes, 4 total files
+```txt
+$ touch 00ntz && __git_status
+local/master ?2 𝚫2 ∴1 #4
+```
+
+# 1 untracked file, 1 new file, 2 modified files, 1 modified file with unstaged changes, 4 total files
+```txt
+$ git add baz && __git_status
+local/master ?1 +1 𝚫2 ∴1 #4
+```
+
+# clean working tree
+```txt
+$ git commit -am "commit" && __git_status
+local/master
+```
+
+# branch origin set
+```txt
+$ git remote add origin https://github.com/user/repo.git && git push -u origin master && __git_status
+origin/master
+```
