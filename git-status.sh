@@ -111,16 +111,20 @@ __git_status() {
     fi
 
     # Branch information
-    git rev-list $hash..HEAD &> /dev/null; exit_code=$?
-    if [ "0" = "$exit_code" ] && [ "" != "$(git rev-list $hash..HEAD)" ]; then
-        echo "git rev-list $hash..HEAD | wc | awk '{print $1}' "
-        ahead_str="<$(echo $(git rev-list $hash..HEAD) | wc | awk '{print $1}') "
+    compare_ref="HEAD"
+    if [ "origin" = "$ref_source" ]; then
+        compare_ref="${ref_source}/${ref_name}"
+    fi
+
+    git rev-list $hash...$compare_ref &> /dev/null; exit_code=$?
+    if [ "0" = "$exit_code" ] && [ "" != "$(git rev-list $hash...$compare_ref)" ]; then
+        ahead_str="<$(echo $(git rev-list $hash...$compare_ref) | wc | awk '{print $1}') "
         output=1
     fi
 
     git rev-list HEAD..$hash &> /dev/null; exit_code=$?
-    if [ "0" = "$behind_str" ] && [ "" != "$(git rev-list HEAD..$hash)" ]; then
-        behind_str=">$(echo $(git rev-list HEAD..$hash) | wc | awk '{print $1}') "
+    if [ "0" = "$behind_str" ] && [ "" != "$(git rev-list $compare_ref...$hash)" ]; then
+        behind_str=">$(echo $(git rev-list $compare_ref...$hash) | wc | awk '{print $1}') "
         output=1
     fi
 
