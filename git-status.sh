@@ -116,17 +116,18 @@ __git_status() {
         compare_ref="${ref_source}/${ref_name}"
     fi
 
-    git rev-list $hash...$compare_ref &> /dev/null; exit_code=$?
-    if [ "0" = "$exit_code" ] && [ "" != "$(git rev-list $hash...$compare_ref)" ]; then
-        ahead_str="<$(echo $(git rev-list $hash...$compare_ref) | wc | awk '{print $1}') "
+    rev_list=$(git rev-list --left-right --count $hash...$compare_ref &> /dev/null); exit_code=$?
+    if [ "0" = "$exit_code" ] && [ "" != "$rev_list" ]; then
+        ahead_str="<$rev_list | wc | awk '{print $1}') "
+        behind_str=">rev_list | wc | awk '{print $2}') "
         output=1
     fi
 
-    git rev-list HEAD..$hash &> /dev/null; exit_code=$?
-    if [ "0" = "$behind_str" ] && [ "" != "$(git rev-list $compare_ref...$hash)" ]; then
-        behind_str=">$(echo $(git rev-list $compare_ref...$hash) | wc | awk '{print $1}') "
-        output=1
-    fi
+    #git rev-list $compare_ref...$hash &> /dev/null; exit_code=$?
+    #if [ "0" = "$behind_str" ] && [ "" != "$(git rev-list $compare_ref...$hash)" ]; then
+    #    behind_str=">$(echo $(git rev-list $compare_ref...$hash) | wc | awk '{print $1}') "
+    #    output=1
+    #fi
 
     # Files with unstaged changes
     if [ "" != "$(git diff --name-only)" ]; then
