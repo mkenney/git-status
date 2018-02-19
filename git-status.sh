@@ -116,6 +116,7 @@ __git_status() {
         compare_ref="${ref_source}/${ref_name}"
     fi
 
+echo $(git rev-list --left-right --count $hash...$compare_ref)
     rev_list=$(git rev-list --left-right --count $hash...$compare_ref &> /dev/null); exit_code=$?
     if [ "0" = "$exit_code" ] && [ "" != "$rev_list" ]; then
         ahead_str="<$rev_list | wc | awk '{print $1}') "
