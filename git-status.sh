@@ -116,13 +116,18 @@ __git_status() {
         compare_ref="${ref_source}/${ref_name}"
     fi
 
-echo git rev-list --left-right --count $hash...$compare_ref
-    rev_list=$(git rev-list --left-right --count $hash...$compare_ref &> /dev/null); exit_code=$?
+    rev_list=$(git rev-list --left-right --count $hash...$compare_ref); exit_code=$?
     if [ "0" = "$exit_code" ] && [ "" != "$rev_list" ]; then
-
-        ahead_str="<$rev_list | awk '{print $1}') "
-        behind_str=">$rev_list | awk '{print $2}') "
-        output=1
+        ahead_count=$(echo $rev_list | awk '{print $1}')
+        if [ "0" != "$ahead_count" ]; then
+            ahead_str="<$ahead_count "
+            output=1
+        fi
+        behind_count=$(echo $rev_list | awk '{print $2}')
+        if [ "0" != "$behind_count" ]; then
+            behind_str=">$behind_count "
+            output=1
+        fi
     fi
 
     #git rev-list $compare_ref...$hash &> /dev/null; exit_code=$?
