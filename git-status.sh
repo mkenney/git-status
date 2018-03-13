@@ -77,12 +77,12 @@ __git_status() {
     ref_source="origin"
     if [ "0" != "$exit_code" ]; then
         # See if on a tag
-        ref_name="$(git describe --tags 2> /dev/null)"; exit_code=$?
+        ref_name="$(git describe --exact-match --tags HEAD 2> /dev/null)"; exit_code=$?
         ref_source="tag"
         if [ "0" != "$exit_code" ]; then
-
             # See if referencing a name
-            ref_name=$(basename $(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null); exit_code=$?
+            ref_name=$(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null; exit_code=$?
+            ref_name=${ref_name/refs\/heads\//}
             ref_source="local"
             if [ "0" != "$exit_code" ]; then
                 # Assume detached state
@@ -95,10 +95,23 @@ __git_status() {
         if [ "" = "$tree_position" ]; then
             ref=$(git symbolic-ref -q HEAD 2> /dev/null)
             if [ "" = "$ref" ]; then
-                ref_name="$hash"
-                ref_source="detached"
+                # See if on a tag
+                ref_name="$(git describe --exact-match --tags HEAD 2> /dev/null)"; exit_code=$?
+                ref_source="tag"
+                if [ "0" != "$exit_code" ]; then
+                    # See if referencing a name
+                    ref_name=$(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null; exit_code=$?
+                    ref_name=${ref_name/refs\/heads\//}
+                    ref_source="local"
+                    if [ "0" != "$exit_code" ]; then
+                        # Assume detached state
+                        ref_name=$hash
+                        ref_source="detached"
+                    fi
+                fi
             else
-                ref_name=$(basename $ref)
+                ref_name=$ref
+                ref_name=${ref_name/refs\/heads\//}
                 ref_source="local"
             fi
         elif grep -q '\->' <<< $(git show -s --pretty=%d HEAD); then
@@ -130,12 +143,6 @@ __git_status() {
         fi
     fi
 
-    #git rev-list $compare_ref...$hash &> /dev/null; exit_code=$?
-    #if [ "0" = "$behind_str" ] && [ "" != "$(git rev-list $compare_ref...$hash)" ]; then
-    #    behind_str=">$(echo $(git rev-list $compare_ref...$hash) | wc | awk '{print $1}') "
-    #    output=1
-    #fi
-
     # Files with unstaged changes
     if [ "" != "$(git diff --name-only)" ]; then
         # ♐ ± ~ ∵ ∴
@@ -162,7 +169,7 @@ __git_status() {
             if [ "D" = "$flag1" ] || [ "D" = "$flag2" ]; then
                 deleted=$((deleted + 1))
                 # × ␥ ␡
-                deleted_str="D$deleted "
+                deleted_str="×$deleted "
                 output=1
             fi
 
