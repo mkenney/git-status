@@ -45,19 +45,19 @@ local/master
 #### 1 untracked file, 1 total files
 ```txt
 $ touch foo && __git_status
-local/master ?1 #1
+local/master …1 #1
 ```
 
 #### 2nd untracked files, 2 total files
 ```txt
 $ touch bar && __git_status
-local/master ?2 #2
+local/master …2 #2
 ```
 
 #### 1 untracked file, 1 new file, 2 total files
 ```txt
 $ git add foo && __git_status
-local/master ?1 +1 #2
+local/master …1 +1 #2
 ```
 
 #### 2 new files, 2 total files
@@ -120,25 +120,25 @@ local/master ✔ 2 ✎ 1 #2
 #### 1 untracked file, 2 modified files, 1 file with unstaged changes, 3 total files
 ```txt
 $ touch baz && __git_status
-local/master ?1 ✔ 2 ✎ 1 #3
+local/master …1 ✔ 2 ✎ 1 #3
 ```
 
 #### 2 untracked files, 2 modified files, 1 file with unstaged changes, 4 total files
 ```txt
 $ touch 00ntz && __git_status
-local/master ?2 ✔ 2 ✎ 1 #4
+local/master …2 ✔ 2 ✎ 1 #4
 ```
 
 #### 1 untracked file, 1 new file, 2 modified files, 1 file with unstaged changes, 4 total files
 ```txt
 $ git add baz && __git_status
-local/master ?1 +1 ✔ 2 ✎ 1 #4
+local/master …1 +1 ✔ 2 ✎ 1 #4
 ```
 
 #### 1 untracked file, 1 deleted file, 1 new file, 1 modified file, 1 file with unstaged changes, 4 total files
 ```txt
 $ git rm -f foo && __git_status
-local/master ?1 ×1 +1 ✔ 1 ✎ 1 #4
+local/master …1 ×1 +1 ✔ 1 ✎ 1 #4
 ```
 
 #### clean working tree
@@ -175,5 +175,5 @@ origin/master ↓2 ↑2
 ##### local ahead 2 commits, origin ahead 2 commits, 1 untracked file, 1 deleted file, 1 new file, 2 modified files, 1 renamed file, 1 file with unstaged changes, 5 total files
 ```txt
 $ ... && __git_status
-origin/master ↓2 ↑2 ?1 ×1 +1 ↪ 1 ✔ 2 ✎ 1 #5
+origin/master ↓2 ↑2 …1 ×1 +1 ↪ 1 ✔ 2 ✎ 1 #5
 ```
