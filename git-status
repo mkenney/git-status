@@ -166,7 +166,7 @@ __git_status() {
             if [ "A" = "$flag1" ] || [ "A" = "$flag2" ]; then
                 added=$((added + 1))
                 # + ✚
-                added_str="✚$added "
+                added_str="✚ $added "
                 output=1
             fi
 
@@ -174,7 +174,7 @@ __git_status() {
             if [ "D" = "$flag1" ] || [ "D" = "$flag2" ]; then
                 deleted=$((deleted + 1))
                 # × ␥ ␡ ✖
-                deleted_str="✖$deleted "
+                deleted_str="✖ $deleted "
                 output=1
             fi
 
