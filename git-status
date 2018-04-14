@@ -47,8 +47,8 @@ __git_status() {
     local deleted_str=
     local deleted=0
     local detached=0
-    local modified_str=
-    local modified=0
+    local staged_str=
+    local staged=0
     local output=0
     local ref_name=$(basename $(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null)
     local renamed_str=
@@ -178,12 +178,12 @@ __git_status() {
                 output=1
             fi
 
-            # Modified staged files
+            # Staged files
             if [ "M" = "$flag1" ] || [ "M" = "$flag2" ]; then
-                modified=$((modified + 1))
-                modstaged=$((modified - $(git diff --name-only | wc | awk '{print $1}')))
+                staged=$((staged + 1))
+                modstaged=$((staged - $(git diff --name-only | wc | awk '{print $1}')))
                 # ≠ ≢ 𝚫 ✔
-                modified_str="✔ $modstaged "
+                staged_str="✔ $modstaged "
                 output=1
             fi
 
@@ -214,10 +214,9 @@ EOF
     fi
 
     if [ "0" != "$output" ]; then
-        echo "⎇ $(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${untracked_str}${deleted_str}${added_str}${renamed_str}${modified_str}${unstaged_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
+        echo "⎇ $(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}${untracked_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
     else
         echo "⎇ ${ref_source}/${ref_name}"
     fi
 }
-
 export -f __git_status
