@@ -20,6 +20,8 @@ A complex set of changes containing all these elements might produce a status li
 origin/feature1 ↓2 ↑2 …1 ✖1 ✚1 ↪ 1 ✔ 2 ✎ 1 #5
 ```
 
+though that doesn't really come up. I rarely have more than 1 - 3 status indicators showing at a time.
+
 ## examples
 
 #### detached head
