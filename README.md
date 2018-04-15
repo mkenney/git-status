@@ -17,7 +17,7 @@ This is a simple, clean `git` status line for your shell prompt. The `git-status
 A complex set of changes containing all these elements might produce a status line that looks something like:
 
 ```txt
-origin/feature1 ↓2 ↑2 …1 ✖1 ✚1 ↪ 1 ✔ 2 ✎ 1 #5
+origin/feature1 ↓2 ↑2 ✖1 ✚1 ↪ 1 ✔ 2 ✎ 1 …1 #5
 ```
 
 though that doesn't really come up. I rarely have more than 1 - 3 status indicators showing at a time.

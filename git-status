@@ -7,8 +7,8 @@
 #
 # * `origin`/`local`/`tag`/`detached` origin indicator
 # * branch name/tag name/commit hash position indicator
-# * number of commits behind origin: `>n`
-# * number of commits ahead of origin: `<n`
+# * number of commits behind origin: `↓n`
+# * number of commits ahead of origin: `↑n`
 # * number of untracked files: `?n`
 # * number of deleted files: `Dn`
 # * number of added files: `+n`
