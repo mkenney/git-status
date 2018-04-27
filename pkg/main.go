@@ -38,6 +38,7 @@ type gitState struct {
 	deleted   int
 	renamed   int
 	staged    int
+	stashed   int
 	total     int
 	unstaged  int
 	untracked int
@@ -103,6 +104,9 @@ func (state *gitState) String() string {
 	if state.ahead > 0 {
 		status = fmt.Sprintf("%s ↑%d", status, state.ahead)
 	}
+	if state.stashed > 0 {
+		status = fmt.Sprintf("%s ＊%d", status, state.stashed)
+	}
 	if state.deleted > 0 {
 		status = fmt.Sprintf("%s ✖%d", status, state.deleted)
 	}
@@ -146,6 +150,7 @@ behind:    %v
 deleted:   %v
 renamed:   %v
 staged:    %v
+stashed:   %v
 total:     %v
 unstaged:  %v
 untracked: %v
@@ -163,6 +168,7 @@ untracked: %v
 			state.deleted,
 			state.renamed,
 			state.staged,
+			state.stashed,
 			state.total,
 			state.unstaged,
 			state.untracked,
@@ -173,8 +179,9 @@ untracked: %v
 }
 
 var localStateCommands = map[string][]string{
-	"status": {"status", "--porcelain"},
 	"diff":   {"diff", "--name-only"},
+	"stash":  {"stash", "list"},
+	"status": {"status", "--porcelain"},
 }
 
 func (state *gitState) initLocalState() {
@@ -189,6 +196,10 @@ func (state *gitState) initLocalState() {
 		parts := strings.Split(state.data["rev-list"], "\t")
 		state.ahead, _ = strconv.Atoi(parts[0])
 		state.behind, _ = strconv.Atoi(parts[1])
+	}
+
+	if "" != state.data["stash"] {
+		state.stashed = len(strings.Split(state.data["stash"], "\n"))
 	}
 
 	status := strings.Split(state.data["status"], "\n")
@@ -224,20 +235,18 @@ func (state *gitState) initLocalState() {
 }
 
 var refStateCommands = map[string][]string{
-	"abbrev":   {"rev-parse", "--abbrev-ref", "HEAD"},
-	"branch":   {"symbolic-ref", "--short", "HEAD"},
-	"hash":     {"rev-parse", "HEAD"},
-	"ref":      {"rev-parse", "--symbolic-full-name", "HEAD"},
-	"tag":      {"describe", "--exact-match", "--tags", "HEAD"},
-	"upstream": {"for-each-ref", "--format='%(upstream:short)'", "$(git symbolic-ref -q HEAD 2> /dev/null)"},
+	"abbrev": {"rev-parse", "--abbrev-ref", "HEAD"},
+	"branch": {"symbolic-ref", "--short", "HEAD"},
+	"hash":   {"rev-parse", "HEAD"},
+	"ref":    {"rev-parse", "--symbolic-full-name", "HEAD"},
+	"tag":    {"describe", "--exact-match", "--tags", "HEAD"},
+	//"upstream": {"for-each-ref", "--format='%(upstream:short)'", "$(git symbolic-ref -q HEAD 2> /dev/null)"},
+	"upstream": {"rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"},
 }
 
 func (state *gitState) initRefState() {
 	state.load(refStateCommands)
 	state.hash = state.data["hash"]
-	if "" != state.data["upstream"] || "HEAD" != state.data["abbrev"] || "" != state.data["tag"] {
-		state.attached = true
-	}
 	if "" != state.data["upstream"] {
 		state.upstream = true
 	}
@@ -246,5 +255,11 @@ func (state *gitState) initRefState() {
 	}
 	if "" != state.data["tag"] {
 		state.tagged = true
+	}
+	if "" != state.data["stash"] {
+		state.stashed = len(strings.Split(state.data["stash"], "\n"))
+	}
+	if state.upstream || state.named || state.tagged {
+		state.attached = true
 	}
 }
