@@ -128,6 +128,45 @@ func (state *gitState) String() string {
 	if state.verbose {
 		tmp, _ := json.MarshalIndent(state.data, "", "    ")
 		fmt.Println(string(tmp))
+		fmt.Printf(`
+data:     %v
+
+// Ref data
+attached: %v
+hash:     %v
+named:    %v
+refName:  %v
+tagged:   %v
+upstream: %v
+
+// local state data
+added:     %v
+ahead:     %v
+behind:    %v
+deleted:   %v
+renamed:   %v
+staged:    %v
+total:     %v
+unstaged:  %v
+untracked: %v
+			`,
+			state.data,
+			state.attached,
+			state.hash,
+			state.named,
+			state.refName,
+			state.tagged,
+			state.upstream,
+			state.added,
+			state.ahead,
+			state.behind,
+			state.deleted,
+			state.renamed,
+			state.staged,
+			state.total,
+			state.unstaged,
+			state.untracked,
+		)
 	}
 
 	return fmt.Sprintf("⎇ %s/%s%s", origin, position, status)
