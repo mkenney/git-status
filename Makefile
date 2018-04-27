@@ -8,7 +8,7 @@ GOTEST=$(GOCMD) test pkg/...
 GODEP=dep ensure
 BINARY_NAME=git-status
 
-all: clean test build
+all: clean build
 build: build-linux build-darwin
 test:
 	$(GOTEST) -v ./...
