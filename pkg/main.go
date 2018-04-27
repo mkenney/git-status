@@ -187,10 +187,9 @@ var localStateCommands = map[string][]string{
 func (state *gitState) initLocalState() {
 	cmpRef := "HEAD"
 	if state.upstream {
-		cmpRef = "origin"
+		cmpRef = state.data["upstream"]
 	}
 	localStateCommands["rev-list"] = strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", state.hash, cmpRef), " ")
-	fmt.Println(localStateCommands["rev-list"])
 	state.load(localStateCommands)
 
 	if "" != state.data["rev-list"] {
