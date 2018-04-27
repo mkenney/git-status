@@ -7,8 +7,8 @@
 #
 # * `origin`/`local`/`tag`/`detached` origin indicator
 # * branch name/tag name/commit hash position indicator
-# * number of commits behind origin: `>n`
-# * number of commits ahead of origin: `<n`
+# * number of commits behind origin: `↓n`
+# * number of commits ahead of origin: `↑n`
 # * number of untracked files: `?n`
 # * number of deleted files: `Dn`
 # * number of added files: `+n`
@@ -40,25 +40,25 @@
 
 __git_status() {
     set -o pipefail
-    local added=0
     local added_str=
+    local added=0
     local ahead_str=
     local behind_str=
-    local deleted=0
     local deleted_str=
+    local deleted=0
     local detached=0
-    local modified=0
-    local modified_str=
+    local staged_str=
+    local staged=0
     local output=0
     local ref_name=$(basename $(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null)
-    local renamed=0
     local renamed_str=
-    local total=0
+    local renamed=0
     local total_str=
+    local total=0
     local tree_position=
     local unstaged_str=
-    local untracked=0
     local untracked_str=
+    local untracked=0
 
     git rev-parse HEAD &> /dev/null; exit_code=$?
     if [ "0" = "$exit_code" ]; then
@@ -134,20 +134,22 @@ __git_status() {
     if [ "0" = "$exit_code" ] && [ "" != "$rev_list" ]; then
         ahead_count=$(echo $rev_list | awk '{print $1}')
         if [ "0" != "$ahead_count" ]; then
-            ahead_str="<$ahead_count "
+            # < ↑
+            ahead_str="↑$ahead_count "
             output=1
         fi
         behind_count=$(echo $rev_list | awk '{print $2}')
         if [ "0" != "$behind_count" ]; then
-            behind_str=">$behind_count "
+            # > ↓
+            behind_str="↓$behind_count "
             output=1
         fi
     fi
 
     # Files with unstaged changes
     if [ "" != "$(git diff --name-only)" ]; then
-        # ♐ ± ~ ∵ ∴
-        unstaged_str="∴$(git diff --name-only | wc | awk '{print $1}') "
+        # ♐ ± ~ ∵ ✎
+        unstaged_str="✎ $(git diff --name-only | wc | awk '{print $1}') "
         output=1
     fi
 
@@ -161,24 +163,25 @@ __git_status() {
             # Added files
             if [ "A" = "$flag1" ] || [ "A" = "$flag2" ]; then
                 added=$((added + 1))
-                # +
-                added_str="+$added "
+                # + ✚
+                added_str="✚ $added "
                 output=1
             fi
 
             # Deleted files
             if [ "D" = "$flag1" ] || [ "D" = "$flag2" ]; then
                 deleted=$((deleted + 1))
-                # × ␥ ␡
-                deleted_str="×$deleted "
+                # × ␥ ␡ ✖
+                deleted_str="✖ $deleted "
                 output=1
             fi
 
-            # Modified files
+            # Staged files
             if [ "M" = "$flag1" ] || [ "M" = "$flag2" ]; then
-                modified=$((modified + 1))
-                # ≠ ≢ 𝚫
-                modified_str="𝚫$modified "
+                staged=$((staged + 1))
+                modstaged=$((staged - $(git diff --name-only | wc | awk '{print $1}')))
+                # ≠ ≢ 𝚫 ✔
+                staged_str="✔ $modstaged "
                 output=1
             fi
 
@@ -186,15 +189,15 @@ __git_status() {
             if [ "R" = "$flag1" ] || [ "R" = "$flag2" ]; then
                 renamed=$((renamed + 1))
                 # ⤿  ↪
-                renamed_str="↪$renamed "
+                renamed_str="↪ $renamed "
                 output=1
             fi
 
             # Untracked files
             if [ "?" = "$flag1" ] || [ "?" = "$flag2" ]; then
                 untracked=$((untracked + 1))
-                # ∑ ?
-                untracked_str="?$untracked "
+                # ∑ ? …
+                untracked_str="…$untracked "
                 output=1
             fi
         fi
@@ -209,10 +212,9 @@ EOF
     fi
 
     if [ "0" != "$output" ]; then
-        echo "$(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${untracked_str}${deleted_str}${added_str}${renamed_str}${modified_str}${unstaged_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
+        echo "⎇ $(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}${untracked_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
     else
-        echo "${ref_source}/${ref_name}"
+        echo "⎇ ${ref_source}/${ref_name}"
     fi
 }
-
 export -f __git_status
