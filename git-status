@@ -38,7 +38,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Because doing this sequentially in bash is slow
+platform=`uname`
+if [ "Darwin" = "$platform" ]; then
+    which git-status-darwin-amd64 &> /dev/null; exit_code=$?
+    if [ "0" = "$exit_code" ]; then
+        __git_status_cmd=git-status-darwin-amd64
+    fi
+fi
+if [ "Linux" = "$platform" ]; then
+    which git-status-linux-amd64 &> /dev/null; exit_code=$?
+    if [ "0" = "$exit_code" ]; then
+        __git_status_cmd=git-status-linux-amd64
+    fi
+fi
+export __git_status_cmd
+
 __git_status() {
+    # Because doing this sequentially in bash is slow
+    if [ "" != "$__git_status_cmd" ]; then
+        echo $($__git_status_cmd $@)
+        return
+    fi
+
+    # Fallback to the bash script
     set -o pipefail
     local added_str=
     local added=0
