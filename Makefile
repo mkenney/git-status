@@ -1,17 +1,13 @@
-# Go params
 GOCMD=go
 GOPKG=github.com/mkenney/git-status/pkg
 GOBIN=bin
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test pkg/...
-GODEP=dep ensure
 BINARY_NAME=git-status
 
 all: clean build
-build: build-linux build-darwin
-test:
-	$(GOTEST) -v ./...
+build: build-linux-64 build-darwin-64
 clean:
 	$(GOCLEAN)
 	rm -f $(GOBIN)/$(BINARY_NAME)-linux-amd64
@@ -19,13 +15,9 @@ clean:
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v ./...
 	./$(BINARY_NAME)
-deps:
-	cd $(GOPKG)
-	$(GODEP)
-	cd -
 
-# Cross compilation
-build-linux:
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(GOBIN)/$(BINARY_NAME)-linux-amd64 -v $(GOPKG)
-build-darwin:
-		CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(GOBIN)/$(BINARY_NAME)-darwin-amd64 -v $(GOPKG)
+# Target architectures
+build-linux-64:
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux  $(GOBUILD) -o $(GOBIN)/$(BINARY_NAME)-linux-amd64  -v $(GOPKG)
+build-darwin-64:
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin $(GOBUILD) -o $(GOBIN)/$(BINARY_NAME)-darwin-amd64 -v $(GOPKG)

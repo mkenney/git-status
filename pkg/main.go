@@ -16,7 +16,7 @@ func main() {
 		state.verbose = true
 	}
 	state.init()
-	fmt.Printf("\n%s\n", state)
+	fmt.Printf("%s", state)
 }
 
 type gitState struct {
@@ -47,30 +47,6 @@ type gitState struct {
 func (state *gitState) init() {
 	state.initRefState()
 	state.initLocalState()
-}
-
-var loadMux sync.Mutex
-
-func (state *gitState) load(commands map[string][]string) {
-	doneCh := make(chan bool)
-	for k, cmd := range commands {
-		fnK := k
-		fnCmd := cmd
-		go func() {
-			out, err := exec.Command("git", fnCmd...).Output()
-			loadMux.Lock()
-			if nil == err {
-				state.data[fnK] = strings.Trim(string(out), "\t\n' ")
-			} else {
-				state.data[fnK] = ""
-			}
-			loadMux.Unlock()
-			doneCh <- true
-		}()
-	}
-	for a := 0; a < len(commands); a++ {
-		<-doneCh
-	}
 }
 
 func (state *gitState) String() string {
@@ -178,22 +154,9 @@ untracked: %v
 	return fmt.Sprintf("⎇ %s/%s%s", origin, position, status)
 }
 
-var localStateCommands = map[string][]string{
-	"diff":   {"diff", "--name-only"},
-	"stash":  {"stash", "list"},
-	"status": {"status", "--porcelain"},
-}
-
 func (state *gitState) initLocalState() {
-	cmpRef := "HEAD"
-	if state.upstream {
-		cmpRef = state.data["upstream"]
-	}
-	localStateCommands["rev-list"] = strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", state.hash, cmpRef), " ")
-	state.load(localStateCommands)
-
-	if "" != state.data["rev-list"] {
-		parts := strings.Split(state.data["rev-list"], "\t")
+	if "" != state.data["position"] {
+		parts := strings.Split(state.data["position"], "\t")
 		state.ahead, _ = strconv.Atoi(parts[0])
 		state.behind, _ = strconv.Atoi(parts[1])
 	}
@@ -206,12 +169,14 @@ func (state *gitState) initLocalState() {
 	if "" != state.data["diff"] {
 		state.unstaged = len(strings.Split(state.data["diff"], "\n"))
 	}
-	state.total = len(status)
 	for _, stat := range status {
+		if "" == stat {
+			continue
+		}
+		state.total++
 		runes := []rune(stat)
 		a := string(runes[0])
 		b := string(runes[1])
-		//fmt.Printf("\nStatus: '%s', a: '%s', b: '%s', diff: '%s'\n", stat, a, b, state.data["diff"])
 		if "A" == a || "A" == b {
 			state.added++
 		}
@@ -234,14 +199,62 @@ func (state *gitState) initLocalState() {
 	}
 }
 
+var loadMux sync.Mutex
+
+func (state *gitState) load(commands map[string][]string) {
+	doneCh := make(chan bool)
+	for k, cmd := range commands {
+		fnK := k
+		fnCmd := cmd
+		go func() {
+			out, err := exec.Command("git", fnCmd...).Output()
+			loadMux.Lock()
+			if nil == err {
+				state.data[fnK] = strings.Trim(string(out), "\t\n' ")
+			} else {
+				state.data[fnK] = ""
+			}
+			loadMux.Unlock()
+			doneCh <- true
+		}()
+	}
+
+	positionFound := false
+	for a := 0; a < len(commands); a++ {
+		<-doneCh
+		// As soon as the hash and upstream data has loaded, load the
+		// relative position information
+		upstream, upOk := state.data["upstream"]
+		hash, hashOk := state.data["hash"]
+		if upOk && hashOk && !positionFound {
+			positionFound = true
+			cmpRef := "HEAD"
+			if "" != upstream {
+				cmpRef = upstream
+			}
+			out, err := exec.Command("git", strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", hash, cmpRef), " ")...).Output()
+			loadMux.Lock()
+			if nil == err {
+				state.data["position"] = strings.Trim(string(out), "\t\n' ")
+			} else {
+				state.data["position"] = ""
+			}
+			loadMux.Unlock()
+		}
+	}
+}
+
 var refStateCommands = map[string][]string{
-	"abbrev": {"rev-parse", "--abbrev-ref", "HEAD"},
-	"branch": {"symbolic-ref", "--short", "HEAD"},
-	"hash":   {"rev-parse", "HEAD"},
-	"ref":    {"rev-parse", "--symbolic-full-name", "HEAD"},
-	"tag":    {"describe", "--exact-match", "--tags", "HEAD"},
-	//"upstream": {"for-each-ref", "--format='%(upstream:short)'", "$(git symbolic-ref -q HEAD 2> /dev/null)"},
+	"abbrev":   {"rev-parse", "--abbrev-ref", "HEAD"},
+	"branch":   {"symbolic-ref", "--short", "HEAD"},
+	"hash":     {"rev-parse", "HEAD"},
+	"ref":      {"rev-parse", "--symbolic-full-name", "HEAD"},
+	"tag":      {"describe", "--exact-match", "--tags", "HEAD"},
 	"upstream": {"rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"},
+
+	"diff":   {"diff", "--name-only"},
+	"stash":  {"stash", "list"},
+	"status": {"status", "--porcelain"},
 }
 
 func (state *gitState) initRefState() {

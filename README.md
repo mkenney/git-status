@@ -22,6 +22,14 @@ origin/feature1 ↓2 ↑2 ✖1 ✚1 ↪ 1 ✔ 2 ✎ 1 …1 #5
 
 though that doesn't really come up. I rarely have more than 1 - 3 status indicators showing at a time.
 
+## usage
+
+Running all the `git` commands sequentially in `bash` was a bit slow, sometimes pushing a full second for large complex changes, so I reimplemented it in `go`. The shell script will still fallback to the `bash` version if the binaries aren't found.
+
+To enable the `go` version, add [`git-status-darwin-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-darwin-amd64) and/or [`git-status-linux-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-linux-amd64) to your path. `git-status` will detect the correct platform automatically.
+
+There's a [`Makefile`](https://github.com/mkenney/git-status/blob/go/Makefile) now... so adding more architectures is easy enough.
+
 ## examples
 
 #### detached head
