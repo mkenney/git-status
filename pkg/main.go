@@ -224,8 +224,10 @@ func (state *gitState) load(commands map[string][]string) {
 		<-doneCh
 		// As soon as the hash and upstream data has loaded, load the
 		// relative position information
+		loadMux.Lock()
 		upstream, upOk := state.data["upstream"]
 		hash, hashOk := state.data["hash"]
+		loadMux.Unlock()
 		if upOk && hashOk && !positionFound {
 			positionFound = true
 			go func() {
