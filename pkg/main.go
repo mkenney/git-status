@@ -74,6 +74,9 @@ func (state *gitState) String() string {
 	//	state.behind: %d, state.ahead: %d, state.deleted: %d, state.added: %d, state.renamed: %d, state.staged: %d, state.unstaged: %d, state.untracked: %d, state.total: %d
 	//`, state.behind, state.ahead, state.deleted, state.added, state.renamed, state.staged, state.unstaged, state.untracked, state.total)
 	status := ""
+	if state.untracked > 0 {
+		status = fmt.Sprintf("%s …%d", status, state.untracked)
+	}
 	if state.stashed > 0 {
 		status = fmt.Sprintf("%s ＊%d", status, state.stashed)
 	}
@@ -97,9 +100,6 @@ func (state *gitState) String() string {
 	}
 	if state.unstaged > 0 {
 		status = fmt.Sprintf("%s ✎%d", status, state.unstaged)
-	}
-	if state.untracked > 0 {
-		status = fmt.Sprintf("%s …%d", status, state.untracked)
 	}
 	if state.total > 0 {
 		//status = fmt.Sprintf("%s #%d", status, state.total)

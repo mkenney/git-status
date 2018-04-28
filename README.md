@@ -4,9 +4,10 @@ This is a simple, clean, informative `git` status line for your `bash` shell pro
 
 * `origin`/`local`/`tag`/`detached` origin indicator
 * branch name/tag name/commit hash position indicator
+* total untracked files: `…n`
+* total stashed changes: `＊n`
 * total commits behind origin: `↓n`
 * total commits ahead of origin: `↑n`
-* total untracked files: `…n`
 * total deleted files: `✖n`
 * total added files: `✚n`
 * total renamed files: `↪n`
@@ -17,7 +18,7 @@ This is a simple, clean, informative `git` status line for your `bash` shell pro
 A complex set of changes containing all these elements might produce a status line that looks something like:
 
 ```txt
-origin/some-feature/mybranch ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1 …1
+origin/some-feature/mybranch …1 ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1
 ```
 
 though that doesn't really happen much. I rarely have more than 1 - 3 status indicators showing at any given time. ymmv.
@@ -67,25 +68,25 @@ local/master …2
 #### 1 untracked file, 1 new file, 2 total files
 ```txt
 $ git add foo && __git_status
-local/master …1 +1
+local/master …1 ✚1
 ```
 
 #### 2 new files, 2 total files
 ```txt
 $ git add bar && __git_status
-local/master +2
+local/master ✚2
 ```
 
 #### 2 new files, 1 modified file, 1 file with unstaged changes, 2 total files
 ```txt
 $ echo "baz" > foo && __git_status
-local/master +2 ✔1 ✎1
+local/master ✚2 ✔1 ✎1
 ```
 
 #### 2 new files, 2 modified file, 2 files with unstaged changes, 2 total files
 ```txt
 $ echo "baz" > bar && __git_status
-local/master +2 ✔2 ✎2
+local/master ✚2 ✔2 ✎2
 ```
 
 #### 2 new files, 1 modified file, 1 file with unstaged changes, 2 total files
@@ -94,7 +95,7 @@ Because it's a newly tracked file, it sees it as a new file without changes once
 
 ```txt
 $ git add bar && __git_status
-local/master +2 ✔2 ✎2
+local/master ✚2 ✔2 ✎2
 ```
 
 #### clean working tree
@@ -142,13 +143,13 @@ local/master …2 ✔2 ✎1
 #### 1 untracked file, 1 new file, 2 modified files, 1 file with unstaged changes, 4 total files
 ```txt
 $ git add baz && __git_status
-local/master …1 +1 ✔2 ✎1
+local/master …1 ✚1 ✔2 ✎1
 ```
 
 #### 1 untracked file, 1 deleted file, 1 new file, 1 modified file, 1 file with unstaged changes, 4 total files
 ```txt
 $ git rm -f foo && __git_status
-local/master …1 ×1 +1 ✔1 ✎1
+local/master …1 ✖1 ✚1 ✔1 ✎1
 ```
 
 #### clean working tree
@@ -185,5 +186,5 @@ origin/master ↓2 ↑2
 ##### local ahead 2 commits, origin ahead 2 commits, 1 untracked file, 1 deleted file, 1 new file, 2 modified files, 1 renamed file, 1 file with unstaged changes, 5 total files
 ```txt
 $ ... && __git_status
-origin/master ↓2 ↑2 …1 ×1 +1 ↪1 ✔2 ✎1
+origin/master …1 ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1
 ```
