@@ -10,14 +10,14 @@ This is a simple, clean, informative `git` status line for your `bash` shell pro
 * total deleted files: `✖n`
 * total added files: `✚n`
 * total renamed files: `↪n`
-* total modified staged files: `✔`
-* total modified unstaged files: `✎n`
+* total staged files: `✔n`
+* total unstaged files: `✎n`
 * total number of files: `#n`
 
 A complex set of changes containing all these elements might produce a status line that looks something like:
 
 ```txt
-origin/feature1 ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1 …1 #5
+origin/some-feature/mybranch ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1 …1 #5
 ```
 
 though that doesn't really happen much. I rarely have more than 1 - 3 status indicators showing at any given time. ymmv.

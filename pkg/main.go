@@ -220,7 +220,7 @@ func (state *gitState) load(commands map[string][]string) {
 	}
 
 	positionFound := false
-	for a := 0; a < len(commands); a++ {
+	for a := 0; a < len(commands)+1; a++ {
 		<-doneCh
 		// As soon as the hash and upstream data has loaded, load the
 		// relative position information
@@ -228,18 +228,21 @@ func (state *gitState) load(commands map[string][]string) {
 		hash, hashOk := state.data["hash"]
 		if upOk && hashOk && !positionFound {
 			positionFound = true
-			cmpRef := "HEAD"
-			if "" != upstream {
-				cmpRef = upstream
-			}
-			out, err := exec.Command("git", strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", hash, cmpRef), " ")...).Output()
-			loadMux.Lock()
-			if nil == err {
-				state.data["position"] = strings.Trim(string(out), "\t\n' ")
-			} else {
-				state.data["position"] = ""
-			}
-			loadMux.Unlock()
+			go func() {
+				cmpRef := "HEAD"
+				if "" != upstream {
+					cmpRef = upstream
+				}
+				out, err := exec.Command("git", strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", hash, cmpRef), " ")...).Output()
+				loadMux.Lock()
+				if nil == err {
+					state.data["position"] = strings.Trim(string(out), "\t\n' ")
+				} else {
+					state.data["position"] = ""
+				}
+				loadMux.Unlock()
+				doneCh <- true
+			}()
 		}
 	}
 }
