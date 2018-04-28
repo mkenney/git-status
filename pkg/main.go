@@ -99,7 +99,7 @@ func (state *gitState) String() string {
 		status = fmt.Sprintf("%s ✔%d", status, state.staged)
 	}
 	if state.unstaged > 0 {
-		status = fmt.Sprintf("%s ✎%d", status, state.unstaged)
+		status = fmt.Sprintf("%s ✎ %d", status, state.unstaged)
 	}
 	if state.total > 0 {
 		//status = fmt.Sprintf("%s #%d", status, state.total)
