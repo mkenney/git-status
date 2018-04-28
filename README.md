@@ -1,6 +1,6 @@
 # git-status
 
-This is a simple, clean `git` status line for your shell prompt. The `git-status.sh` script defines a function called, creatively, `__git_status()` that returns a string indicating the current state of your local repository. The function returns a string describing:
+This is a simple, clean, informative `git` status line for your `bash` shell prompt. The `git-status` script defines a function called, creatively, `__git_status()` that returns a string indicating the current state of your local repository. The function returns a string describing:
 
 * `origin`/`local`/`tag`/`detached` origin indicator
 * branch name/tag name/commit hash position indicator
@@ -20,11 +20,13 @@ A complex set of changes containing all these elements might produce a status li
 origin/feature1 ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1 …1 #5
 ```
 
-though that doesn't really come up. I rarely have more than 1 - 3 status indicators showing at a time.
+though that doesn't really happen much. I rarely have more than 1 - 3 status indicators showing at any given time. ymmv.
 
 ## usage
 
-Running all the `git` commands sequentially in `bash` was a bit slow, sometimes pushing a full second for large complex changes, so I reimplemented it in `go`. The shell script will still fallback to the `bash` version if the binaries aren't found.
+Running all the `git` commands sequentially in `bash` is a bit slow, sometimes pushing a full second for complex changes or a large number of files, so I reimplemented it in `go`. The shell script will still fallback to the `bash` version if the binaries aren't found.
+
+The performance of the `go` version is limited to the speed of the slowest `git` command, generally `git diff --name-only` to list the changed files. Usually 100 - 200 milliseconds.
 
 To enable the `go` version, add [`git-status-darwin-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-darwin-amd64) and/or [`git-status-linux-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-linux-amd64) to your path. `git-status` will detect the correct platform automatically.
 
