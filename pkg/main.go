@@ -102,7 +102,7 @@ func (state *gitState) String() string {
 		status = fmt.Sprintf("%s …%d", status, state.untracked)
 	}
 	if state.total > 0 {
-		status = fmt.Sprintf("%s #%d", status, state.total)
+		//status = fmt.Sprintf("%s #%d", status, state.total)
 	}
 
 	if state.verbose {
