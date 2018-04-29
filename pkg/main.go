@@ -70,9 +70,6 @@ func (state *gitState) String() string {
 		position = state.data["tag"]
 	}
 
-	//fmt.Printf(`
-	//	state.behind: %d, state.ahead: %d, state.deleted: %d, state.added: %d, state.renamed: %d, state.staged: %d, state.unstaged: %d, state.untracked: %d, state.total: %d
-	//`, state.behind, state.ahead, state.deleted, state.added, state.renamed, state.staged, state.unstaged, state.untracked, state.total)
 	status := ""
 	if state.untracked > 0 {
 		status = fmt.Sprintf("%s …%d", status, state.untracked)
@@ -100,9 +97,6 @@ func (state *gitState) String() string {
 	}
 	if state.unstaged > 0 {
 		status = fmt.Sprintf("%s ✎ %d", status, state.unstaged)
-	}
-	if state.total > 0 {
-		//status = fmt.Sprintf("%s #%d", status, state.total)
 	}
 
 	if state.verbose {
@@ -165,10 +159,11 @@ func (state *gitState) initLocalState() {
 		state.stashed = len(strings.Split(state.data["stash"], "\n"))
 	}
 
-	status := strings.Split(state.data["status"], "\n")
 	if "" != state.data["diff"] {
 		state.unstaged = len(strings.Split(state.data["diff"], "\n"))
 	}
+
+	status := strings.Split(state.data["status"], "\n")
 	for _, stat := range status {
 		if "" == stat {
 			continue
@@ -193,6 +188,7 @@ func (state *gitState) initLocalState() {
 			state.untracked++
 		}
 	}
+
 	state.staged -= state.unstaged
 	if state.staged < 0 {
 		state.staged = 0
@@ -222,29 +218,31 @@ func (state *gitState) load(commands map[string][]string) {
 	positionFound := false
 	for a := 0; a < len(commands)+1; a++ {
 		<-doneCh
-		// As soon as the hash and upstream data has loaded, load the
-		// relative position information
-		loadMux.Lock()
-		upstream, upOk := state.data["upstream"]
-		hash, hashOk := state.data["hash"]
-		loadMux.Unlock()
-		if upOk && hashOk && !positionFound {
-			positionFound = true
-			go func() {
-				cmpRef := "HEAD"
-				if "" != upstream {
-					cmpRef = upstream
-				}
-				out, err := exec.Command("git", strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", hash, cmpRef), " ")...).Output()
-				loadMux.Lock()
-				if nil == err {
-					state.data["position"] = strings.Trim(string(out), "\t\n' ")
-				} else {
-					state.data["position"] = ""
-				}
-				loadMux.Unlock()
-				doneCh <- true
-			}()
+		if !positionFound {
+			// As soon as the hash and upstream data has loaded, load the
+			// relative position information
+			loadMux.Lock()
+			upstream, upOk := state.data["upstream"]
+			hash, hashOk := state.data["hash"]
+			loadMux.Unlock()
+			if upOk && hashOk {
+				positionFound = true
+				go func() {
+					cmpRef := "HEAD"
+					if "" != upstream {
+						cmpRef = upstream
+					}
+					out, err := exec.Command("git", strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", hash, cmpRef), " ")...).Output()
+					loadMux.Lock()
+					if nil == err {
+						state.data["position"] = strings.Trim(string(out), "\t\n' ")
+					} else {
+						state.data["position"] = ""
+					}
+					loadMux.Unlock()
+					doneCh <- true
+				}()
+			}
 		}
 	}
 }
