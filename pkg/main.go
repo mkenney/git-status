@@ -93,7 +93,7 @@ func (state *gitState) String() string {
 		status = fmt.Sprintf("%s ✚ %d", status, state.added)
 	}
 	if state.renamed > 0 {
-		status = fmt.Sprintf("%s ↪%d", status, state.renamed)
+		status = fmt.Sprintf("%s ↪ %d", status, state.renamed)
 	}
 	if state.staged > 0 {
 		status = fmt.Sprintf("%s ✔ %d", status, state.staged)
