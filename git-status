@@ -7,15 +7,15 @@
 #
 # * `origin`/`local`/`tag`/`detached` origin indicator
 # * branch name/tag name/commit hash position indicator
-# * number of commits behind origin: `↓n`
-# * number of commits ahead of origin: `↑n`
-# * number of untracked files: `?n`
-# * number of deleted files: `Dn`
-# * number of added files: `+n`
-# * number of modified files: `𝚫n`
-# * number of renamed files: `↪n`
-# * number of files with unstaged changes: `∴n`
-# * total number of files: `#n`
+# * total untracked files: `…n`
+# * total stashed changes: `＊n`
+# * total commits behind origin: `↓n`
+# * total commits ahead of origin: `↑n`
+# * total deleted files: `✖n`
+# * total added files: `✚n`
+# * total renamed files: `↪n`
+# * total staged files: `✔n`
+# * total unstaged files: `✎n`
 #
 # MIT License
 # Copyright (c) 2018 Michael Kenney
@@ -40,17 +40,12 @@
 
 # Because doing this sequentially in bash is slow
 platform=`uname`
+__git_status_cmd=
 if [ "Darwin" = "$platform" ]; then
-    which git-status-darwin-amd64 &> /dev/null; exit_code=$?
-    if [ "0" = "$exit_code" ]; then
-        __git_status_cmd=git-status-darwin-amd64
-    fi
+    __git_status_cmd=$(which git-status-darwin-amd64)
 fi
 if [ "Linux" = "$platform" ]; then
-    which git-status-linux-amd64 &> /dev/null; exit_code=$?
-    if [ "0" = "$exit_code" ]; then
-        __git_status_cmd=git-status-linux-amd64
-    fi
+    __git_status_cmd=$(which git-status-linux-amd64)
 fi
 export __git_status_cmd
 
@@ -73,7 +68,7 @@ __git_status() {
     local staged_str=
     local staged=0
     local output=0
-    local ref_name=$(basename $(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null)
+    local ref_name=
     local renamed_str=
     local renamed=0
     local total_str=

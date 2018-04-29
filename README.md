@@ -8,11 +8,11 @@ This is a simple, clean, informative `git` status line for your `bash` shell pro
 * total stashed changes: `＊n`
 * total commits behind origin: `↓n`
 * total commits ahead of origin: `↑n`
-* total deleted files: `✖n`
-* total added files: `✚n`
-* total renamed files: `↪n`
-* total staged files: `✔n`
-* total unstaged files: `✎n`
+* total deleted files: `✖ n`
+* total added files: `✚ n`
+* total renamed files: `↪ n`
+* total staged files: `✔ n`
+* total unstaged files: `✎ n`
 <!--* total number of files: `#n`-->
 
 A complex set of changes containing all these elements might produce a status line that looks something like:
