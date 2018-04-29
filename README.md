@@ -1,6 +1,6 @@
 # git-status
 
-This is a simple, clean, informative `git` status line for your `bash` shell prompt. The `git-status` script defines a function called, creatively, `__git_status()` that returns a string indicating the current state of your local repository. The function returns a string describing:
+This is a simple, clean, informative `git` status line for your `bash` shell prompt. The `git-status` script defines a function called `__git_status()` that returns a string describing the current state of your local repository:
 
 * `origin`/`local`/`tag`/`detached` origin indicator
 * branch name/tag name/commit hash position indicator
@@ -18,16 +18,18 @@ This is a simple, clean, informative `git` status line for your `bash` shell pro
 A complex set of changes containing all these elements might produce a status line that looks something like:
 
 ```txt
-origin/some-feature/mybranch …1 ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1
+origin/some-feature/mybranch …1 ↓2 ↑2 ✖ 1 ✚ 1 ↪ 1 ✔ 2 ✎ 1
 ```
 
-though that doesn't really happen much. I rarely have more than 1 - 3 status indicators showing at any given time. ymmv.
+though that doesn't really come up often. I rarely have more than 1 - 3 status indicators showing at any given time. ymmv.
 
 ## usage
 
-Running all the `git` commands sequentially in `bash` is a bit slow, sometimes pushing a full second for complex changes or a large number of files, so I reimplemented it in `go`. The shell script will still fallback to the `bash` version if the binaries aren't found.
+Sourcing the [`git-status`](https://github.com/mkenney/git-status/blob/master/git-status) file in your shell creates a `bash` function called `__git_status` that prints the status line. Use as you see fit.
 
-The performance of the `go` version is limited to the speed of the slowest `git` command, generally `git diff --name-only` to list the changed files. Usually 100 - 200 milliseconds.
+Running all the `git` commands sequentially in `bash` is a bit slow though, sometimes pushing a full second for complex changes or a large number of files, so I reimplemented it in `go`. The shell script will still fallback to the `bash` version if the binaries aren't found.
+
+The performance of the `go` version is limited to the speed of the slowest `git` command, generally `git diff --name-only` to list changed files. Usually 100 - 200 milliseconds.
 
 To enable the `go` version, add [`git-status-darwin-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-darwin-amd64) and/or [`git-status-linux-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-linux-amd64) to your path. `git-status` will detect the correct platform automatically.
 
@@ -68,25 +70,25 @@ local/master …2
 #### 1 untracked file, 1 new file, 2 total files
 ```txt
 $ git add foo && __git_status
-local/master …1 ✚1
+local/master …1 ✚ 1
 ```
 
 #### 2 new files, 2 total files
 ```txt
 $ git add bar && __git_status
-local/master ✚2
+local/master ✚ 2
 ```
 
 #### 2 new files, 1 modified file, 1 file with unstaged changes, 2 total files
 ```txt
 $ echo "baz" > foo && __git_status
-local/master ✚2 ✔1 ✎1
+local/master ✚ 2 ✔ 1 ✎ 1
 ```
 
 #### 2 new files, 2 modified file, 2 files with unstaged changes, 2 total files
 ```txt
 $ echo "baz" > bar && __git_status
-local/master ✚2 ✔2 ✎2
+local/master ✚ 2 ✔ 2 ✎ 2
 ```
 
 #### 2 new files, 1 modified file, 1 file with unstaged changes, 2 total files
@@ -95,7 +97,7 @@ Because it's a newly tracked file, it sees it as a new file without changes once
 
 ```txt
 $ git add bar && __git_status
-local/master ✚2 ✔2 ✎2
+local/master ✚ 2 ✔ 2 ✎ 2
 ```
 
 #### clean working tree
@@ -107,49 +109,49 @@ local/master
 #### 1 renamed file, 1 total files
 ```txt
 $ git mv bar baz && __git_status && git reset --hard
-local/master ↪1
+local/master ↪ 1
 ```
 
 #### 1 modified file, 1 file with unstaged changes, 1 total files
 ```txt
 $ echo "baz2" >> bar && __git_status
-local/master ✔1 ✎1
+local/master ✔ 1 ✎ 1
 ```
 
 #### 2 modified files, 2 files with unstaged changes, 2 total files
 ```txt
 $ echo "baz" >> foo && __git_status
-local/master ✔2 ✎2
+local/master ✔ 2 ✎ 2
 ```
 
 #### 2 modified files, 1 file with unstaged changes, 2 total files
 ```txt
 $ git add foo && __git_status
-local/master ✔2 ✎1
+local/master ✔ 2 ✎ 1
 ```
 
 #### 1 untracked file, 2 modified files, 1 file with unstaged changes, 3 total files
 ```txt
 $ touch baz && __git_status
-local/master …1 ✔2 ✎1
+local/master …1 ✔ 2 ✎ 1
 ```
 
 #### 2 untracked files, 2 modified files, 1 file with unstaged changes, 4 total files
 ```txt
 $ touch 00ntz && __git_status
-local/master …2 ✔2 ✎1
+local/master …2 ✔ 2 ✎ 1
 ```
 
 #### 1 untracked file, 1 new file, 2 modified files, 1 file with unstaged changes, 4 total files
 ```txt
 $ git add baz && __git_status
-local/master …1 ✚1 ✔2 ✎1
+local/master …1 ✚ 1 ✔ 2 ✎ 1
 ```
 
 #### 1 untracked file, 1 deleted file, 1 new file, 1 modified file, 1 file with unstaged changes, 4 total files
 ```txt
 $ git rm -f foo && __git_status
-local/master …1 ✖1 ✚1 ✔1 ✎1
+local/master …1 ✖ 1 ✚ 1 ✔ 1 ✎ 1
 ```
 
 #### clean working tree
@@ -186,5 +188,5 @@ origin/master ↓2 ↑2
 ##### local ahead 2 commits, origin ahead 2 commits, 1 untracked file, 1 deleted file, 1 new file, 2 modified files, 1 renamed file, 1 file with unstaged changes, 5 total files
 ```txt
 $ ... && __git_status
-origin/master …1 ↓2 ↑2 ✖1 ✚1 ↪1 ✔2 ✎1
+origin/master …1 ↓2 ↑2 ✖ 1 ✚ 1 ↪ 1 ✔ 2 ✎ 1
 ```
