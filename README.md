@@ -33,7 +33,7 @@ The performance of the `go` version is limited to the speed of the slowest `git`
 
 To enable the `go` version, add [`git-status-darwin-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-darwin-amd64) and/or [`git-status-linux-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-linux-amd64) to your path. `git-status` will detect the correct platform automatically.
 
-There's a [`Makefile`](https://github.com/mkenney/git-status/blob/go/Makefile) now... so adding more architectures is easy enough.
+There's a [`Makefile`](https://github.com/mkenney/git-status/blob/master/Makefile) now... so adding more architectures is easy enough.
 
 ## examples
 
