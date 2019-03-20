@@ -144,7 +144,7 @@ __git_status() {
     # Branch information
     compare_ref="HEAD"
     if [ "origin" = "$ref_source" ]; then
-        compare_ref="${ref_source}/${ref_name}"
+        compare_ref="${ref_source}: ${ref_name}"
     fi
 
     rev_list=$(git rev-list --left-right --count $hash...$compare_ref); exit_code=$?
@@ -229,9 +229,9 @@ EOF
     fi
 
     if [ "0" != "$output" ]; then
-        echo "⎇ $(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}${untracked_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
+        echo "⎇ $(echo -e "${ref_source}: ${ref_name} ${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}${untracked_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
     else
-        echo "⎇ ${ref_source}/${ref_name}"
+        echo "⎇ ${ref_source}: ${ref_name}"
     fi
 }
 export -f __git_status
