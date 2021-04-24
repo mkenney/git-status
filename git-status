@@ -45,7 +45,9 @@ if [ "Darwin" = "$platform" ]; then
     __git_status_cmd=$(which git-status-darwin-amd64)
 fi
 if [ "Linux" = "$platform" ]; then
-    __git_status_cmd=$(which git-status-linux-amd64)
+    uname -a | grep -q x86_64 && __git_status_cmd=$(which git-status-linux-amd64)
+    uname -a | grep -q armv7  && __git_status_cmd=$(which git-status-linux-armv7)
+
 fi
 export __git_status_cmd
 
