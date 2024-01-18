@@ -11,37 +11,37 @@ import (
 )
 
 func main() {
-	state := &gitState{data: make(map[string]string)}
+	state := &gitState{Data: make(map[string]string)}
 	if len(os.Args) > 1 && "-v" == os.Args[1] {
-		state.verbose = true
+		state.Verbose = true
 	}
 	state.init()
 	fmt.Printf("%s", state)
 }
 
 type gitState struct {
-	verbose bool
+	Verbose bool
 
 	// Ref data
-	attached bool
-	data     map[string]string
-	hash     string
-	named    bool
-	refName  string
-	tagged   bool
-	upstream bool
+	Attached bool
+	Data     map[string]string
+	Hash     string
+	Named    bool
+	RefName  string
+	Tagged   bool
+	Upstream bool
 
 	// local state data
-	added     int
-	ahead     int
-	behind    int
-	deleted   int
-	renamed   int
-	staged    int
-	stashed   int
-	total     int
-	unstaged  int
-	untracked int
+	Added     int
+	Ahead     int
+	Behind    int
+	Deleted   int
+	Renamed   int
+	Staged    int
+	Stashed   int
+	Total     int
+	Unstaged  int
+	Untracked int
 }
 
 func (state *gitState) init() {
@@ -53,96 +53,97 @@ func (state *gitState) String() string {
 	origin := "origin"
 	position := "master"
 
-	if !state.upstream {
+	if !state.Upstream {
 		origin = "local"
 	}
-	if "" != state.hash {
-		position = string([]rune(state.hash)[:10])
+	if "" != state.Hash {
+		position = string([]rune(state.Hash)[:10])
 	}
-	if state.named {
-		position = state.data["branch"]
+	if state.Named {
+		position = state.Data["branch"]
 	}
-	if !state.attached {
+	if !state.Attached {
 		origin = "detached"
 	}
-	if state.tagged {
+	if state.Tagged {
 		origin = "tag"
-		position = state.data["tag"]
+		position = state.Data["tag"]
 	}
 
 	status := ""
-	if state.untracked > 0 {
-		status = fmt.Sprintf("%s …%d", status, state.untracked)
+	if state.Untracked > 0 {
+		status = fmt.Sprintf("%s …%d", status, state.Untracked)
 	}
-	if state.stashed > 0 {
-		status = fmt.Sprintf("%s ＊%d", status, state.stashed)
+	if state.Stashed > 0 {
+		status = fmt.Sprintf("%s ＊%d", status, state.Stashed)
 	}
-	if state.behind > 0 {
-		status = fmt.Sprintf("%s ↓%d", status, state.behind)
+	if state.Behind > 0 {
+		status = fmt.Sprintf("%s ↓%d", status, state.Behind)
 	}
-	if state.ahead > 0 {
-		status = fmt.Sprintf("%s ↑%d", status, state.ahead)
+	if state.Ahead > 0 {
+		status = fmt.Sprintf("%s ↑%d", status, state.Ahead)
 	}
-	if state.deleted > 0 {
-		status = fmt.Sprintf("%s ✖ %d", status, state.deleted)
+	if state.Deleted > 0 {
+		status = fmt.Sprintf("%s ✖ %d", status, state.Deleted)
 	}
-	if state.added > 0 {
-		status = fmt.Sprintf("%s ✚ %d", status, state.added)
+	if state.Added > 0 {
+		status = fmt.Sprintf("%s ✚ %d", status, state.Added)
 	}
-	if state.renamed > 0 {
-		status = fmt.Sprintf("%s ↪ %d", status, state.renamed)
+	if state.Renamed > 0 {
+		status = fmt.Sprintf("%s ↪ %d", status, state.Renamed)
 	}
-	if state.staged > 0 {
-		status = fmt.Sprintf("%s ✔ %d", status, state.staged)
+	if state.Staged > 0 {
+		status = fmt.Sprintf("%s ✔ %d", status, state.Staged)
 	}
-	if state.unstaged > 0 {
-		status = fmt.Sprintf("%s ✎ %d", status, state.unstaged)
+	if state.Unstaged > 0 {
+		status = fmt.Sprintf("%s ✎ %d", status, state.Unstaged)
 	}
 
-	if state.verbose {
-		tmp, _ := json.MarshalIndent(state.data, "", "    ")
+	if state.Verbose {
+		tmp, _ := json.MarshalIndent(state, "", "    ")
 		fmt.Println(string(tmp))
-		fmt.Printf(`
-data:     %v
+		// 		fmt.Printf(`
+		// data:     %v
 
-// Ref data
-attached: %v
-hash:     %v
-named:    %v
-refName:  %v
-tagged:   %v
-upstream: %v
+		// // Ref data
+		// attached: %v
+		// hash:     %v
+		// named:    %v
+		// refName:  %v
+		// tagged:   %v
+		// upstream: %v
 
-// local state data
-added:     %v
-ahead:     %v
-behind:    %v
-deleted:   %v
-renamed:   %v
-staged:    %v
-stashed:   %v
-total:     %v
-unstaged:  %v
-untracked: %v
-			`,
-			state.data,
-			state.attached,
-			state.hash,
-			state.named,
-			state.refName,
-			state.tagged,
-			state.upstream,
-			state.added,
-			state.ahead,
-			state.behind,
-			state.deleted,
-			state.renamed,
-			state.staged,
-			state.stashed,
-			state.total,
-			state.unstaged,
-			state.untracked,
-		)
+		// // local state data
+		// added:     %v
+		// ahead:     %v
+		// behind:    %v
+		// deleted:   %v
+		// renamed:   %v
+		// staged:    %v
+		// stashed:   %v
+		// total:     %v
+		// unstaged:  %v
+		// untracked: %v
+		// 			`,
+		// 			state.Data,
+		// 			state.Attached,
+		// 			state.Hash,
+		// 			state.Named,
+		// 			state.RefName,
+		// 			state.Tagged,
+		// 			state.Upstream,
+		// 			state.Added,
+		// 			state.Ahead,
+		// 			state.Behind,
+		// 			state.Deleted,
+		// 			state.Renamed,
+		// 			state.Staged,
+		// 			state.Stashed,
+		// 			state.Total,
+		// 			state.Unstaged,
+		// 			state.Untracked,
+		// 		)
+		return ""
 	}
 
 	//return fmt.Sprintf("⎇ %s: %s%s", origin, position, status)
@@ -150,49 +151,49 @@ untracked: %v
 }
 
 func (state *gitState) initLocalState() {
-	if "" != state.data["position"] {
-		parts := strings.Split(state.data["position"], "\t")
-		state.ahead, _ = strconv.Atoi(parts[0])
-		state.behind, _ = strconv.Atoi(parts[1])
+	if "" != state.Data["position"] {
+		parts := strings.Split(state.Data["position"], "\t")
+		state.Ahead, _ = strconv.Atoi(parts[0])
+		state.Behind, _ = strconv.Atoi(parts[1])
 	}
 
-	if "" != state.data["stash"] {
-		state.stashed = len(strings.Split(state.data["stash"], "\n"))
+	if "" != state.Data["stash"] {
+		state.Stashed = len(strings.Split(state.Data["stash"], "\n"))
 	}
 
-	if "" != state.data["diff"] {
-		state.unstaged = len(strings.Split(state.data["diff"], "\n"))
+	if "" != state.Data["diff"] {
+		state.Unstaged = len(strings.Split(state.Data["diff"], "\n"))
 	}
 
-	status := strings.Split(state.data["status"], "\n")
+	status := strings.Split(state.Data["status"], "\n")
 	for _, stat := range status {
 		if "" == stat {
 			continue
 		}
-		state.total++
+		state.Total++
 		runes := []rune(stat)
 		a := string(runes[0])
 		b := string(runes[1])
 		if "A" == a || "A" == b {
-			state.added++
+			state.Added++
 		}
 		if "D" == a || "D" == b {
-			state.deleted++
+			state.Deleted++
 		}
 		if "M" == a || "M" == b {
-			state.staged++
+			state.Staged++
 		}
 		if "R" == a || "R" == b {
-			state.renamed++
+			state.Renamed++
 		}
 		if "?" == a || "?" == b {
-			state.untracked++
+			state.Untracked++
 		}
 	}
 
-	state.staged -= state.unstaged
-	if state.staged < 0 {
-		state.staged = 0
+	state.Staged -= state.Unstaged
+	if state.Staged < 0 {
+		state.Staged = 0
 	}
 }
 
@@ -207,9 +208,9 @@ func (state *gitState) load(commands map[string][]string) {
 			out, err := exec.Command("git", fnCmd...).Output()
 			loadMux.Lock()
 			if nil == err {
-				state.data[fnK] = strings.Trim(string(out), "\t\n' ")
+				state.Data[fnK] = strings.Trim(string(out), "\t\n' ")
 			} else {
-				state.data[fnK] = ""
+				state.Data[fnK] = ""
 			}
 			loadMux.Unlock()
 			doneCh <- true
@@ -223,8 +224,8 @@ func (state *gitState) load(commands map[string][]string) {
 			// As soon as the hash and upstream data has loaded, lookup
 			// the relative position information.
 			loadMux.Lock()
-			upstream, upOk := state.data["upstream"]
-			hash, hashOk := state.data["hash"]
+			upstream, upOk := state.Data["upstream"]
+			hash, hashOk := state.Data["hash"]
 			loadMux.Unlock()
 			if upOk && hashOk {
 				positionFound = true
@@ -236,9 +237,9 @@ func (state *gitState) load(commands map[string][]string) {
 					out, err := exec.Command("git", strings.Split(fmt.Sprintf("rev-list --left-right --count %s...%s", hash, cmpRef), " ")...).Output()
 					loadMux.Lock()
 					if nil == err {
-						state.data["position"] = strings.Trim(string(out), "\t\n' ")
+						state.Data["position"] = strings.Trim(string(out), "\t\n' ")
 					} else {
-						state.data["position"] = ""
+						state.Data["position"] = ""
 					}
 					loadMux.Unlock()
 					doneCh <- true
@@ -263,20 +264,20 @@ var refStateCommands = map[string][]string{
 
 func (state *gitState) initRefState() {
 	state.load(refStateCommands)
-	state.hash = state.data["hash"]
-	if "" != state.data["upstream"] {
-		state.upstream = true
+	state.Hash = state.Data["hash"]
+	if "" != state.Data["upstream"] {
+		state.Upstream = true
 	}
-	if "" != state.data["branch"] {
-		state.named = true
+	if "" != state.Data["branch"] {
+		state.Named = true
 	}
-	if "" != state.data["tag"] {
-		state.tagged = true
+	if "" != state.Data["tag"] {
+		state.Tagged = true
 	}
-	if "" != state.data["stash"] {
-		state.stashed = len(strings.Split(state.data["stash"], "\n"))
+	if "" != state.Data["stash"] {
+		state.Stashed = len(strings.Split(state.Data["stash"], "\n"))
 	}
-	if state.upstream || state.named || state.tagged {
-		state.attached = true
+	if state.Upstream || state.Named || state.Tagged {
+		state.Attached = true
 	}
 }

@@ -52,9 +52,13 @@ fi
 export __git_status_cmd
 
 __git_status() {
-    # Because doing this sequentially in bash is slow
+    # execute binary version if available
     if [ "" != "$__git_status_cmd" ]; then
-        echo $($__git_status_cmd $@)
+        if [ "-v" = "$1" ]; then
+            $__git_status_cmd -v | jq
+        else
+            echo $($__git_status_cmd)
+        fi
         return
     fi
 
