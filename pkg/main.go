@@ -145,7 +145,8 @@ untracked: %v
 		)
 	}
 
-	return fmt.Sprintf("⎇ %s: %s%s", origin, position, status)
+	//return fmt.Sprintf("⎇ %s: %s%s", origin, position, status)
+	return fmt.Sprintf(" %s: %s%s", origin, position, status)
 }
 
 func (state *gitState) initLocalState() {
