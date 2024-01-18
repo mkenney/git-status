@@ -67,7 +67,7 @@ func (state *gitState) String() string {
 	}
 	if state.Tagged {
 		origin = "tag"
-		position = state.Data["tag"]
+		position = fmt.Sprintf("%s (%s)", state.Data["tag"], position)
 	}
 
 	status := ""
