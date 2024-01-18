@@ -146,8 +146,8 @@ func (state *gitState) String() string {
 		return ""
 	}
 
-	//return fmt.Sprintf("⎇ %s: %s%s", origin, position, status)
-	return fmt.Sprintf(" %s: %s%s", origin, position, status)
+	return fmt.Sprintf("⎇ %s: %s%s", origin, position, status)
+	//return fmt.Sprintf(" %s: %s%s", origin, position, status)
 }
 
 func (state *gitState) initLocalState() {

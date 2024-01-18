@@ -234,8 +234,8 @@ EOF
         output=1
     fi
 
-    icon=""
-    #icon="⎇"
+    #icon=""
+    icon="⎇"
     if [ "0" != "$output" ]; then
         echo "${icon} $(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}${untracked_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
     else
