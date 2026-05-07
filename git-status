@@ -7,15 +7,15 @@
 #
 # * `origin`/`local`/`tag`/`detached` origin indicator
 # * branch name/tag name/commit hash position indicator
-# * total untracked files: `…n`
-# * total stashed changes: `＊n`
-# * total commits behind origin: `↓n`
-# * total commits ahead of origin: `↑n`
-# * total deleted files: `✖n`
-# * total added files: `✚n`
-# * total renamed files: `↪n`
-# * total staged files: `✔n`
-# * total unstaged files: `✎n`
+# * number of untracked files: `…n`
+# * number of stashed changes: `＊n`
+# * number of commits behind origin: `↓n`
+# * number of commits ahead of origin: `↑n`
+# * number of deleted files: `✖ n`
+# * number of added files: `✚ n`
+# * number of renamed files: `↪ n`
+# * number of staged files: `✔ n`
+# * number of files with unstaged changes: `✎ n`
 #
 # MIT License
 # Copyright (c) 2018 Michael Kenney
@@ -38,16 +38,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Because doing this sequentially in bash is slow
+# Prefer the native-arch binary; fall back to amd64 (runs under Rosetta on Darwin).
 platform=`uname`
+arch=`uname -m`
 __git_status_cmd=
 if [ "Darwin" = "$platform" ]; then
-    __git_status_cmd=$(which git-status-darwin-amd64)
+    if [ "arm64" = "$arch" ]; then
+        which git-status-darwin-arm64 &> /dev/null && __git_status_cmd=git-status-darwin-arm64
+    fi
+    if [ "" = "$__git_status_cmd" ]; then
+        which git-status-darwin-amd64 &> /dev/null && __git_status_cmd=git-status-darwin-amd64
+    fi
 fi
 if [ "Linux" = "$platform" ]; then
-    uname -a | grep -q x86_64 && __git_status_cmd=$(which git-status-linux-amd64)
-    uname -a | grep -q armv7  && __git_status_cmd=$(which git-status-linux-armv7)
-
+    if [ "aarch64" = "$arch" ]; then
+        which git-status-linux-arm64 &> /dev/null && __git_status_cmd=git-status-linux-arm64
+    elif [ "armv7l" = "$arch" ]; then
+        which git-status-linux-armv7 &> /dev/null && __git_status_cmd=git-status-linux-armv7
+    fi
+    if [ "" = "$__git_status_cmd" ]; then
+        which git-status-linux-amd64 &> /dev/null && __git_status_cmd=git-status-linux-amd64
+    fi
 fi
 export __git_status_cmd
 
@@ -62,184 +73,104 @@ __git_status() {
         return
     fi
 
-    # Fallback to the bash script
-    set -o pipefail
-    local added_str=
-    local added=0
-    local ahead_str=
-    local behind_str=
-    local deleted_str=
-    local deleted=0
-    local detached=0
-    local staged_str=
-    local staged=0
-    local output=0
-    local ref_name=
-    local renamed_str=
-    local renamed=0
-    local total_str=
-    local total=0
-    local tree_position=
-    local unstaged_str=
-    local untracked_str=
-    local untracked=0
+    # Fallback: single git call replaces ~10 sequential git processes.
+    # --porcelain=v2 --branch provides oid, branch name, upstream,
+    # ahead/behind counts, and all file statuses in one shot.
+    local raw
+    raw=$(git status --porcelain=v2 --branch 2>/dev/null) || return
 
-    git rev-parse HEAD &> /dev/null; exit_code=$?
-    if [ "0" = "$exit_code" ]; then
-        hash=$(git rev-parse --short=10 HEAD 2> /dev/null); exit_code=$?
-    fi
-    if [ "0" != "$exit_code" ]; then
-        git rev-parse --abbrev-ref HEAD &> /dev/null; exit_code=$?
-        if [ "0" = "$exit_code" ]; then
-            hash=$(git rev-parse --abbrev-ref HEAD)
-        else
-            hash="master"
-        fi
-    fi
+    # Parse branch header lines
+    local oid head upstream ahead=0 behind=0
+    while IFS= read -r line; do
+        case "$line" in
+            '# branch.oid '*)
+                oid="${line#'# branch.oid '}"; oid="${oid:0:10}" ;;
+            '# branch.head '*)
+                head="${line#'# branch.head '}" ;;
+            '# branch.upstream '*)
+                upstream="${line#'# branch.upstream '}" ;;
+            '# branch.ab '*)
+                local ab="${line#'# branch.ab '}"
+                ahead="${ab%% *}"; ahead="${ahead#+}"
+                behind="${ab##* }"; behind="${behind#-}"
+                ;;
+        esac
+    done <<< "$raw"
 
-    ref_name=$(git rev-parse --abbrev-ref HEAD 2> /dev/null); exit_code=$?
-    ref_source="origin"
-    if [ "0" != "$exit_code" ]; then
-        # See if on a tag
-        ref_name="$(git describe --exact-match --tags HEAD 2> /dev/null)"; exit_code=$?
-        ref_source="tag"
-        if [ "0" != "$exit_code" ]; then
-            # See if referencing a name
-            ref_name=$(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null; exit_code=$?
-            ref_name=${ref_name/refs\/heads\//}
-            ref_source="local"
-            if [ "0" != "$exit_code" ]; then
-                # Assume detached state
-                ref_name=$hash
-                ref_source="detached"
-            fi
-        fi
-    else
-        tree_position=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD 2> /dev/null) | head -1) 2> /dev/null
-        if [ "" = "$tree_position" ]; then
-            ref=$(git symbolic-ref -q HEAD 2> /dev/null)
-            if [ "" = "$ref" ]; then
-                # See if on a tag
-                ref_name="$(git describe --exact-match --tags HEAD 2> /dev/null)"; exit_code=$?
-                ref_source="tag"
-                if [ "0" != "$exit_code" ]; then
-                    # See if referencing a name
-                    ref_name=$(git symbolic-ref HEAD 2> /dev/null) 2> /dev/null; exit_code=$?
-                    ref_name=${ref_name/refs\/heads\//}
-                    ref_source="local"
-                    if [ "0" != "$exit_code" ]; then
-                        # Assume detached state
-                        ref_name=$hash
-                        ref_source="detached"
-                    fi
-                fi
-            else
-                ref_name=$ref
-                ref_name=${ref_name/refs\/heads\//}
-                ref_source="local"
-            fi
-        elif grep -q '\->' <<< $(git show -s --pretty=%d HEAD); then
-            ref_name=$(basename $tree_position)
-            ref_source=$(dirname $tree_position)
+    # Determine ref_source and ref_name.
+    # Detached HEAD: try tag description (shown as "tag: name (hash)"), fall back to commit hash.
+    # Tracking branch: upstream provides "remote/branch" — split into source/name.
+    # Local branch: no upstream tracking set.
+    local ref_source ref_name
+    if [ "(detached)" = "$head" ]; then
+        ref_name=$(git describe --exact-match --tags HEAD 2>/dev/null)
+        if [ -n "$ref_name" ]; then
+            ref_source="tag"
+            ref_name="${ref_name} (${oid})"
         else
-            ref_name="$hash"
+            ref_name="$oid"
             ref_source="detached"
         fi
-    fi
-
-    # Branch information
-    compare_ref="HEAD"
-    if [ "origin" = "$ref_source" ]; then
-        compare_ref="${ref_source}: ${ref_name}"
-    fi
-
-    rev_list=$(git rev-list --left-right --count $hash...$compare_ref); exit_code=$?
-    if [ "0" = "$exit_code" ] && [ "" != "$rev_list" ]; then
-        ahead_count=$(echo $rev_list | awk '{print $1}')
-        if [ "0" != "$ahead_count" ]; then
-            # < ↑
-            ahead_str="↑$ahead_count "
-            output=1
-        fi
-        behind_count=$(echo $rev_list | awk '{print $2}')
-        if [ "0" != "$behind_count" ]; then
-            # > ↓
-            behind_str="↓$behind_count "
-            output=1
-        fi
-    fi
-
-    # Files with unstaged changes
-    if [ "" != "$(git diff --name-only)" ]; then
-        # ♐ ± ~ ∵ ✎
-        unstaged_str="✎ $(git diff --name-only | wc | awk '{print $1}') "
-        output=1
-    fi
-
-    # Tabulate all change states
-    while read line; do
-        flag1=${line:0:1}
-        flag2=${line:1:1}
-        if [ "" != "$line" ]; then
-            total=$((total + 1))
-
-            # Added files
-            if [ "A" = "$flag1" ] || [ "A" = "$flag2" ]; then
-                added=$((added + 1))
-                # + ✚
-                added_str="✚ $added "
-                output=1
-            fi
-
-            # Deleted files
-            if [ "D" = "$flag1" ] || [ "D" = "$flag2" ]; then
-                deleted=$((deleted + 1))
-                # × ␥ ␡ ✖
-                deleted_str="✖ $deleted "
-                output=1
-            fi
-
-            # Staged files
-            if [ "M" = "$flag1" ] || [ "M" = "$flag2" ]; then
-                staged=$((staged + 1))
-                modstaged=$((staged - $(git diff --name-only | wc | awk '{print $1}')))
-                # ≠ ≢ 𝚫 ✔
-                staged_str="✔ $modstaged "
-                output=1
-            fi
-
-            # Renamed files
-            if [ "R" = "$flag1" ] || [ "R" = "$flag2" ]; then
-                renamed=$((renamed + 1))
-                # ⤿  ↪
-                renamed_str="↪ $renamed "
-                output=1
-            fi
-
-            # Untracked files
-            if [ "?" = "$flag1" ] || [ "?" = "$flag2" ]; then
-                untracked=$((untracked + 1))
-                # ∑ ? …
-                untracked_str="…$untracked "
-                output=1
-            fi
-        fi
-    done << EOF
-$(git status --porcelain)
-EOF
-
-    # Total files
-    if [ "0" != "$total" ]; then
-        total_str="#$total "
-        output=1
-    fi
-
-    #icon=""
-    icon="⎇"
-    if [ "0" != "$output" ]; then
-        echo "${icon} $(echo -e "${ref_source}/${ref_name} ${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}${untracked_str}${total_str}" | sed -e 's/[[:space:]]*$//')"
+    elif [ -n "$upstream" ]; then
+        ref_source="$(dirname "$upstream")"
+        ref_name="$(basename "$upstream")"
     else
-        echo "${icon} ${ref_source}/${ref_name}"
+        ref_source="local"
+        ref_name="$head"
+    fi
+
+    # Count stashed entries without spawning wc.
+    local stashed=0
+    local stash_raw
+    stash_raw=$(git stash list 2>/dev/null)
+    while IFS= read -r _stash_line; do
+        [ -n "$_stash_line" ] && stashed=$((stashed+1))
+    done <<< "$stash_raw"
+
+    # Count file states in a single pass — no subprocesses.
+    # Type-1 lines: ordinary changes. X=staged status, Y=unstaged status.
+    # Type-2 lines: renames/copies. Type-?: untracked.
+    local added=0 deleted=0 staged=0 renamed=0 untracked=0 unstaged=0
+    while IFS= read -r line; do
+        case "${line:0:1}" in
+            '1')
+                local x="${line:2:1}" y="${line:3:1}"
+                [ "$x" = "A" ]                      && added=$((added+1))
+                [ "$x" = "D" ] || [ "$y" = "D" ]    && deleted=$((deleted+1))
+                [ "$x" = "M" ] && [ "$y" = "." ]    && staged=$((staged+1))
+                [ "$y" != "." ] && [ "$y" != " " ]  && unstaged=$((unstaged+1))
+                ;;
+            '2')
+                renamed=$((renamed+1))
+                ;;
+            '?')
+                untracked=$((untracked+1))
+                ;;
+        esac
+    done <<< "$(grep -v '^#' <<< "$raw")"
+
+    # Build output string. Indicator order matches the binary:
+    # untracked, stash, behind, ahead, deleted, added, renamed, staged, unstaged.
+    local output=0
+    local untracked_str= stash_str= behind_str= ahead_str=
+    local deleted_str= added_str= renamed_str= staged_str= unstaged_str=
+
+    [ "$untracked" -gt 0 ]              && { untracked_str="…$untracked "; output=1; }
+    [ "$stashed"   -gt 0 ]              && { stash_str="＊$stashed ";      output=1; }
+    [ "$behind"    -gt 0 ] 2>/dev/null && { behind_str="↓$behind ";       output=1; }
+    [ "$ahead"     -gt 0 ] 2>/dev/null && { ahead_str="↑$ahead ";         output=1; }
+    [ "$deleted"   -gt 0 ]              && { deleted_str="✖ $deleted ";    output=1; }
+    [ "$added"     -gt 0 ]              && { added_str="✚ $added ";        output=1; }
+    [ "$renamed"   -gt 0 ]              && { renamed_str="↪ $renamed ";    output=1; }
+    [ "$staged"    -gt 0 ]              && { staged_str="✔ $staged ";      output=1; }
+    [ "$unstaged"  -gt 0 ]              && { unstaged_str="✎ $unstaged ";  output=1; }
+
+    #icon=""
+    local icon="⎇"
+    if [ "0" != "$output" ]; then
+        echo "${icon} $(echo -e "${ref_source}: ${ref_name} ${untracked_str}${stash_str}${behind_str}${ahead_str}${deleted_str}${added_str}${renamed_str}${staged_str}${unstaged_str}" | sed -e 's/[[:space:]]*$//')"
+    else
+        echo "${icon} ${ref_source}: ${ref_name}"
     fi
 }
-export -f __git_status
+#export -f __git_status

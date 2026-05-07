@@ -1,192 +1,165 @@
 # git-status
 
-This is a simple, clean, informative `git` status line for your `bash` shell prompt. The `git-status` script defines a function called `__git_status()` that returns a string describing the current state of your local repository:
+A simple, clean, informative `git` status line for your shell prompt. The `git-status` script defines a function called `__git_status()` that returns a string describing the current state of your local repository.
 
-* `origin`/`local`/`tag`/`detached` origin indicator
-* branch name/tag name/commit hash position indicator
-* total untracked files: `…n`
-* total stashed changes: `＊n`
-* total commits behind origin: `↓n`
-* total commits ahead of origin: `↑n`
-* total deleted files: `✖ n`
-* total added files: `✚ n`
-* total renamed files: `↪ n`
-* total staged files: `✔ n`
-* total unstaged files: `✎ n`
-<!--* total number of files: `#n`-->
-
-A complex set of changes containing all these elements might produce a status line that looks something like:
+Output format:
 
 ```txt
-origin/some-feature/mybranch …1 ↓2 ↑2 ✖ 1 ✚ 1 ↪ 1 ✔ 2 ✎ 1
+⎇ <origin>: <position> […N] [＊N] [↓N] [↑N] [✖ N] [✚ N] [↪ N] [✔ N] [✎ N]
 ```
 
-though that doesn't really come up often. I rarely have more than 1 - 3 status indicators showing at any given time. ymmv.
+Indicators, in output order:
 
-## usage
+| Indicator | Meaning |
+|-----------|---------|
+| `origin:` | `origin`, `local`, `tag`, or `detached` |
+| `position` | branch name, tag name, or short commit hash |
+| `…N` | untracked files |
+| `＊N` | stashed changes |
+| `↓N` | commits behind origin |
+| `↑N` | commits ahead of origin |
+| `✖ N` | deleted files |
+| `✚ N` | added (newly staged) files |
+| `↪ N` | renamed files |
+| `✔ N` | staged modifications (clean working tree) |
+| `✎ N` | files with unstaged changes |
 
-Sourcing the [`git-status`](https://github.com/mkenney/git-status/blob/master/git-status) file in your shell creates a `bash` function called `__git_status` that prints the status line. Use as you see fit.
+A complex status might look like:
 
-Running all the `git` commands sequentially in `bash` is a bit slow though, sometimes pushing a full second for complex changes or a large number of files, so I reimplemented it in `go`. The shell script will still fallback to the `bash` version if the binaries aren't found.
-
-The performance of the `go` version is limited to the speed of the slowest `git` command, generally `git diff --name-only` to list changed files. Usually 100 - 200 milliseconds.
-
-To enable the `go` version, add [`git-status-darwin-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-darwin-amd64) and/or [`git-status-linux-amd64`](https://github.com/mkenney/git-status/blob/go/bin/git-status-linux-amd64) to your path. `git-status` will detect the correct platform automatically.
-
-There's a [`Makefile`](https://github.com/mkenney/git-status/blob/master/Makefile) now... so adding more architectures is easy enough.
-
-## examples
-
-#### detached head
 ```txt
-$ git checkout <some hash> && __git_status
-detached/20528e7ad4
+⎇ origin: main …1 ＊1 ↓2 ↑2 ✖ 1 ✚ 1 ↪ 1 ✔ 2 ✎ 1
 ```
 
-#### tagged commit
-```txt
-$ git tag v0.0.1 && __git_status
-tag/v0.0.1
+though in practice you'll rarely see more than 1–3 indicators at a time.
+
+## Usage
+
+Source the [`git-status`](https://github.com/mkenney/git-status/blob/master/git-status) file in your shell to define the `__git_status` function, then call it from your prompt:
+
+```bash
+source /path/to/git-status
+# In your PS1 or precmd hook:
+PS1='$([ -d .git ] && __git_status) $ '
 ```
 
-#### New empty repository
-```txt
-$ git init && __git_status
-local/master
+## Performance
+
+The shell script fallback uses a single `git status --porcelain=v2 --branch` call (plus `git stash list`) to collect all state, replacing the ~10 sequential git subprocess calls of the naive approach.
+
+The Go binary is faster still — it fans out 6 git commands in parallel goroutines and launches the `rev-list` ahead/behind query as soon as the hash and upstream data are available, without waiting for the other commands to complete. Typical wall time is 100–200 ms.
+
+### Binary installation
+
+Pre-built binaries are available in the `bin/` directory. Add the appropriate binary for your platform to your `PATH`:
+
+| File | Platform |
+|------|----------|
+| `git-status-darwin-arm64` | macOS Apple Silicon |
+| `git-status-darwin-amd64` | macOS Intel (also works on Apple Silicon via Rosetta) |
+| `git-status-linux-arm64` | Linux aarch64 (AWS Graviton, RPi 4+) |
+| `git-status-linux-amd64` | Linux x86-64 |
+| `git-status-linux-armv7` | Linux ARMv7 (RPi 2/3) |
+
+The shell script detects the correct binary automatically based on `uname` and `uname -m`, preferring the native-arch binary when available.
+
+### Building from source
+
+```bash
+# All architectures
+make build
+
+# Single architecture
+make build-darwin-arm64
+make build-darwin-amd64
+make build-linux-arm64
+make build-linux-amd64
+make build-linux-armv7
 ```
 
-#### 1 untracked file, 1 total files
+## Examples
+
+#### Clean working tree, local branch
+
 ```txt
-$ touch foo && __git_status
-local/master …1
+⎇ local: master
 ```
 
-#### 2nd untracked files, 2 total files
+#### Tracking origin, clean
+
 ```txt
-$ touch bar && __git_status
-local/master …2
+⎇ origin: main
 ```
 
-#### 1 untracked file, 1 new file, 2 total files
+#### Detached HEAD
+
 ```txt
-$ git add foo && __git_status
-local/master …1 ✚ 1
+⎇ detached: 20528e7ad4
 ```
 
-#### 2 new files, 2 total files
+#### Tagged commit (detached HEAD at a tag)
+
 ```txt
-$ git add bar && __git_status
-local/master ✚ 2
+⎇ tag: v1.2.3 (20528e7ad4)
 ```
 
-#### 2 new files, 1 modified file, 1 file with unstaged changes, 2 total files
+#### 1 untracked file
+
 ```txt
-$ echo "baz" > foo && __git_status
-local/master ✚ 2 ✔ 1 ✎ 1
+⎇ local: master …1
 ```
 
-#### 2 new files, 2 modified file, 2 files with unstaged changes, 2 total files
+#### 2 staged new files
+
 ```txt
-$ echo "baz" > bar && __git_status
-local/master ✚ 2 ✔ 2 ✎ 2
+⎇ local: master ✚ 2
 ```
 
-#### 2 new files, 1 modified file, 1 file with unstaged changes, 2 total files
-
-Because it's a newly tracked file, it sees it as a new file without changes once the changes are staged.
+#### 2 staged new files, 1 with unstaged changes
 
 ```txt
-$ git add bar && __git_status
-local/master ✚ 2 ✔ 2 ✎ 2
+⎇ local: master ✚ 2 ✔ 1 ✎ 1
 ```
 
-#### clean working tree
+#### 1 renamed file
+
 ```txt
-$ git commit -am "commit" && __git_status
-local/master
+⎇ local: master ↪ 1
 ```
 
-#### 1 renamed file, 1 total files
+#### Origin 2 commits ahead of local
+
 ```txt
-$ git mv bar baz && __git_status && git reset --hard
-local/master ↪ 1
+⎇ origin: main ↓2
 ```
 
-#### 1 modified file, 1 file with unstaged changes, 1 total files
+#### Local 2 commits ahead of origin
+
 ```txt
-$ echo "baz2" >> bar && __git_status
-local/master ✔ 1 ✎ 1
+⎇ origin: main ↑2
 ```
 
-#### 2 modified files, 2 files with unstaged changes, 2 total files
+#### Diverged: 2 commits in each direction
+
 ```txt
-$ echo "baz" >> foo && __git_status
-local/master ✔ 2 ✎ 2
+⎇ origin: main ↓2 ↑2
 ```
 
-#### 2 modified files, 1 file with unstaged changes, 2 total files
+#### 1 stashed change
+
 ```txt
-$ git add foo && __git_status
-local/master ✔ 2 ✎ 1
+⎇ origin: main ＊1
 ```
 
-#### 1 untracked file, 2 modified files, 1 file with unstaged changes, 3 total files
+#### All indicators at once
+
 ```txt
-$ touch baz && __git_status
-local/master …1 ✔ 2 ✎ 1
+⎇ origin: main …1 ＊1 ↓2 ↑2 ✖ 1 ✚ 1 ↪ 1 ✔ 2 ✎ 1
 ```
 
-#### 2 untracked files, 2 modified files, 1 file with unstaged changes, 4 total files
-```txt
-$ touch 00ntz && __git_status
-local/master …2 ✔ 2 ✎ 1
-```
+## Verbose mode (binary only)
 
-#### 1 untracked file, 1 new file, 2 modified files, 1 file with unstaged changes, 4 total files
-```txt
-$ git add baz && __git_status
-local/master …1 ✚ 1 ✔ 2 ✎ 1
-```
-
-#### 1 untracked file, 1 deleted file, 1 new file, 1 modified file, 1 file with unstaged changes, 4 total files
-```txt
-$ git rm -f foo && __git_status
-local/master …1 ✖ 1 ✚ 1 ✔ 1 ✎ 1
-```
-
-#### clean working tree
-```txt
-$ git commit -am "commit" && __git_status
-local/master
-```
-
-#### branch origin set
-```txt
-$ git remote add origin https://github.com/user/repo.git && git push -u origin master && __git_status
-origin/master
-```
-
-#### origin 2 commits ahead of local branch
-```txt
-$ ... && __git_status
-origin/master ↓2
-```
-
-#### local branch 2 commits ahead of origin
-```txt
-$ ... && __git_status
-origin/master ↑2
-```
-
-#### local branch contains 2 commits origin doens't have and origin contains 2 commits local branch doesn't have...
-```txt
-$ ... && __git_status
-origin/master ↓2 ↑2
-```
-
-#### All together
-##### local ahead 2 commits, origin ahead 2 commits, 1 untracked file, 1 deleted file, 1 new file, 2 modified files, 1 renamed file, 1 file with unstaged changes, 5 total files
-```txt
-$ ... && __git_status
-origin/master …1 ↓2 ↑2 ✖ 1 ✚ 1 ↪ 1 ✔ 2 ✎ 1
+```bash
+__git_status -v   # prints the full JSON state object
+# or
+git-status-darwin-arm64 -v | jq
 ```

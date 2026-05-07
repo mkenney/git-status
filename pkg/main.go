@@ -102,52 +102,11 @@ func (state *gitState) String() string {
 	if state.Verbose {
 		tmp, _ := json.MarshalIndent(state, "", "    ")
 		fmt.Println(string(tmp))
-		// 		fmt.Printf(`
-		// data:     %v
-
-		// // Ref data
-		// attached: %v
-		// hash:     %v
-		// named:    %v
-		// refName:  %v
-		// tagged:   %v
-		// upstream: %v
-
-		// // local state data
-		// added:     %v
-		// ahead:     %v
-		// behind:    %v
-		// deleted:   %v
-		// renamed:   %v
-		// staged:    %v
-		// stashed:   %v
-		// total:     %v
-		// unstaged:  %v
-		// untracked: %v
-		// 			`,
-		// 			state.Data,
-		// 			state.Attached,
-		// 			state.Hash,
-		// 			state.Named,
-		// 			state.RefName,
-		// 			state.Tagged,
-		// 			state.Upstream,
-		// 			state.Added,
-		// 			state.Ahead,
-		// 			state.Behind,
-		// 			state.Deleted,
-		// 			state.Renamed,
-		// 			state.Staged,
-		// 			state.Stashed,
-		// 			state.Total,
-		// 			state.Unstaged,
-		// 			state.Untracked,
-		// 		)
 		return ""
 	}
 
 	return fmt.Sprintf("⎇ %s: %s%s", origin, position, status)
-	//return fmt.Sprintf(" %s: %s%s", origin, position, status)
+	//return fmt.Sprintf(" %s: %s%s", origin, position, status)
 }
 
 func (state *gitState) initLocalState() {
@@ -157,16 +116,13 @@ func (state *gitState) initLocalState() {
 		state.Behind, _ = strconv.Atoi(parts[1])
 	}
 
-	if "" != state.Data["stash"] {
-		state.Stashed = len(strings.Split(state.Data["stash"], "\n"))
-	}
-
-	if "" != state.Data["diff"] {
-		state.Unstaged = len(strings.Split(state.Data["diff"], "\n"))
-	}
-
-	status := strings.Split(state.Data["status"], "\n")
-	for _, stat := range status {
+	// Parse all file-level state from status --porcelain in a single pass.
+	// Unstaged count is derived from the Y-column (working tree status),
+	// replacing the separate git diff --name-only subprocess call.
+	// Staged count only includes files where X=M and Y=' ' (staged
+	// modification with no further working-tree changes), fixing the
+	// previous formula that could produce negative counts.
+	for _, stat := range strings.Split(state.Data["status"], "\n") {
 		if "" == stat {
 			continue
 		}
@@ -180,20 +136,18 @@ func (state *gitState) initLocalState() {
 		if "D" == a || "D" == b {
 			state.Deleted++
 		}
-		if "M" == a || "M" == b {
+		if "M" == a && " " == b {
 			state.Staged++
 		}
 		if "R" == a || "R" == b {
 			state.Renamed++
 		}
-		if "?" == a || "?" == b {
+		if "?" == a {
 			state.Untracked++
 		}
-	}
-
-	state.Staged -= state.Unstaged
-	if state.Staged < 0 {
-		state.Staged = 0
+		if " " != b && "?" != b {
+			state.Unstaged++
+		}
 	}
 }
 
@@ -208,7 +162,7 @@ func (state *gitState) load(commands map[string][]string) {
 			out, err := exec.Command("git", fnCmd...).Output()
 			loadMux.Lock()
 			if nil == err {
-				state.Data[fnK] = strings.Trim(string(out), "\t\n' ")
+				state.Data[fnK] = strings.TrimRight(string(out), "\t\n' ")
 			} else {
 				state.Data[fnK] = ""
 			}
@@ -249,15 +203,19 @@ func (state *gitState) load(commands map[string][]string) {
 	}
 }
 
+// refStateCommands are the git commands run in parallel on each invocation.
+// Removed:
+//   "abbrev": rev-parse --abbrev-ref HEAD       (result was never read)
+//   "ref":    rev-parse --symbolic-full-name HEAD (result was never read)
+//   "diff":   diff --name-only                   (redundant: Y-column of
+//                                                 status --porcelain encodes
+//                                                 the same information)
 var refStateCommands = map[string][]string{
-	"abbrev":   {"rev-parse", "--abbrev-ref", "HEAD"},
 	"branch":   {"symbolic-ref", "--short", "HEAD"},
 	"hash":     {"rev-parse", "HEAD"},
-	"ref":      {"rev-parse", "--symbolic-full-name", "HEAD"},
 	"tag":      {"describe", "--exact-match", "--tags", "HEAD"},
 	"upstream": {"rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"},
 
-	"diff":   {"diff", "--name-only"},
 	"stash":  {"stash", "list"},
 	"status": {"status", "--porcelain"},
 }
